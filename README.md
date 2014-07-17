@@ -1,3 +1,5 @@
+![Travis status](https://travis-ci.org/dalibor/octoshark.png)
+
 # Octoshark
 
 Octoshark is an ActiveRecord connection switcher.
