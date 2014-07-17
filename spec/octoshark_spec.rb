@@ -7,10 +7,9 @@ describe Octoshark do
     expect(Octoshark.connection_manager).to_not be_nil
   end
 
-  it "can reset Octoshark's connection manager" do
+  it "raises NotConfiguredError exception when not configured" do
     Octoshark.setup({})
     Octoshark.reset!
-
-    expect(Octoshark.connection_manager).to be_nil
+    expect { Octoshark.connection_manager }.to raise_error(Octoshark::NotConfiguredError)
   end
 end
