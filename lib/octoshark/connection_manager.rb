@@ -14,5 +14,9 @@ module Octoshark
         @connection_pools[name] = ActiveRecord::ConnectionAdapters::ConnectionPool.new(spec)
       end
     end
+
+    def current_connection
+      @default_pool.connection
+    end
   end
 end
