@@ -25,7 +25,14 @@ describe Octoshark::ConnectionManager do
     it "returns default connection as current one" do
       manager = Octoshark::ConnectionManager.new
 
-      expect(manager.current_connection).to eq(ActiveRecord::Base.connection)
+      expect(manager.current_connection).to eq(manager.connection(:default))
+    end
+
+    it "returns last used connection as current one" do
+      manager = Octoshark::ConnectionManager.new(config)
+      connection = manager.connection(:conn1)
+
+      expect(manager.current_connection).to eq(connection)
     end
   end
 
@@ -38,6 +45,14 @@ describe Octoshark::ConnectionManager do
     it "raises Octoshark::NoConnectionError when no pool with that name" do
       manager = Octoshark::ConnectionManager.new({})
       expect { manager.find_connection_pool(:invalid) }.to raise_error(Octoshark::NoConnectionError)
+    end
+  end
+
+  describe "#connection" do
+    it "returns useful connection from the pool" do
+      manager = Octoshark::ConnectionManager.new(config)
+      connection = manager.connection(:conn1)
+      expect(connection.execute('SELECT 2').length).to eq(1)
     end
   end
 end

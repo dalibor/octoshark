@@ -16,7 +16,11 @@ module Octoshark
     end
 
     def current_connection
-      @default_pool.connection
+      Thread.current[:octoshark] || @default_pool.connection
+    end
+
+    def connection(name)
+      Thread.current[:octoshark] = find_connection_pool(name).connection
     end
 
     def find_connection_pool(name, &block)
