@@ -8,6 +8,10 @@ module Octoshark
     @connection_manager = ConnectionManager.new(configs)
   end
 
+  def self.reset!
+    @connection_manager = nil
+  end
+
   def self.connection_manager
     @connection_manager
   end
