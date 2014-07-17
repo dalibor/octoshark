@@ -8,6 +8,8 @@ module Octoshark
   class NoConnectionError < StandardError; end;
   class NoCurrentConnectionError < StandardError; end;
 
+  OCTOSHARK = :octoshark
+
   class << self
     delegate :current_connection, :with_connection, :connection,
       :connection_pools, :find_connection_pool, to: :switcher
@@ -19,7 +21,7 @@ module Octoshark
 
   def self.reset!
     @switcher = nil
-    Thread.current[:octoshark] = nil
+    Thread.current[OCTOSHARK] = nil
   end
 
   def self.switcher
