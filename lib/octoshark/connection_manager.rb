@@ -18,5 +18,15 @@ module Octoshark
     def current_connection
       @default_pool.connection
     end
+
+    def find_connection_pool(name, &block)
+      connection_pool = @connection_pools[name]
+
+      if connection_pool
+        connection_pool
+      else
+        raise Octoshark::NoConnectionError, "No such database connection '#{name}'"
+      end
+    end
   end
 end

@@ -5,6 +5,7 @@ module Octoshark
   autoload :ConnectionManager, 'octoshark/connection_manager'
 
   class NotConfiguredError < RuntimeError; end
+  class NoConnectionError < StandardError; end;
 
   def self.setup(configs)
     @connection_manager = ConnectionManager.new(configs)
