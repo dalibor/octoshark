@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["dalibor.nasevic@gmail.com"]
   spec.summary       = %q{Octoshark is an ActiveRecord connection switcher}
   spec.description   = %q{Octoshark is a library for switching between multiple ActiveRecord connections}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/dalibor/octoshark"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
