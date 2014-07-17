@@ -7,6 +7,11 @@ module Octoshark
   class NotConfiguredError < RuntimeError; end
   class NoConnectionError < StandardError; end;
 
+  class << self
+    delegate :current_connection, :with_connection, :connection,
+      :connection_pools, :find_connection_pool, to: :connection_manager
+  end
+
   def self.setup(configs)
     @connection_manager = ConnectionManager.new(configs)
   end
