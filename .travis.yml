@@ -1,0 +1,8 @@
+rvm:
+  - 2.1.0
+cache:
+  - bundler
+notifications:
+  email:
+    - dalibor.nasevic@gmail.com
+script: bundle exec rspec spec
