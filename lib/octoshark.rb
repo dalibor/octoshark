@@ -6,6 +6,7 @@ module Octoshark
 
   class NotConfiguredError < RuntimeError; end
   class NoConnectionError < StandardError; end;
+  class NoCurrentConnectionError < StandardError; end;
 
   class << self
     delegate :current_connection, :with_connection, :connection,
@@ -18,6 +19,7 @@ module Octoshark
 
   def self.reset!
     @switcher = nil
+    Thread.current[:octoshark] = nil
   end
 
   def self.switcher

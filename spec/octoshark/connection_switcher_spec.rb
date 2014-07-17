@@ -29,18 +29,19 @@ describe Octoshark::ConnectionSwitcher do
   end
 
   describe "#current_connection" do
-    it "returns default connection as current one" do
-      switcher = Octoshark::ConnectionSwitcher.new
-
-      expect(switcher.current_connection).to eq(switcher.connection(:default))
-    end
-
     it "returns last used connection as current one" do
       switcher = Octoshark::ConnectionSwitcher.new(config)
       connection = switcher.connection(:db1)
 
       expect(switcher.current_connection).to eq(connection)
     end
+
+    it "raises error when no current connection" do
+      switcher = Octoshark::ConnectionSwitcher.new
+
+      expect { switcher.current_connection }.to raise_error(Octoshark::NoCurrentConnectionError)
+    end
+
   end
 
   describe '#find_connection_pool' do
