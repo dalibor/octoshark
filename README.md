@@ -2,25 +2,123 @@
 
 # Octoshark
 
-Octoshark is an ActiveRecord connection switcher.
+Octoshark is a simple ActiveRecord connection switcher. It provides a general purpose connection switching that can be used in a multi-database systems such as sharded environments in your Rails application. It **does not** monkey-patch any `ActiveRecord::Base` methods and requires to specify which ActiveRecord models will use the Octoshark connection.
+
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'octoshark'
+```
+gem 'octoshark'
+```
 
 And then execute:
 
-    $ bundle
+```
+$ bundle
+```
 
 Or install it yourself as:
 
-    $ gem install octoshark
+```
+$ gem install octoshark
+```
+
 
 ## Usage
 
-TODO: Write usage instructions here
+Specify the connections for Octoshark to manage. This is usually done in an app initializer.
+
+```ruby
+Octoshark.setup({
+  db1: { adapter: "sqlite3", database: "db/db1.sqlite" },
+  db2: { adapter: "sqlite3", database: "db/db2.sqlite" }
+})
+```
+
+Configure which ActiveRecord models will use the Octoshark connection by overriding the Model.connection method. If there are many models, extract it in a module and include it.
+
+```ruby
+class Post < ActiveRecord::Base
+  def self.connection
+    Octoshark.current_connection
+  end
+end
+```
+
+To use a specific database connection, do:
+
+```ruby
+Octoshark.with_connection(:db1) do
+  # work with db1
+  Post.first
+end
+```
+
+Octoshark connection is changed for the duration of that block and then reversed back to the previous connection. Multiple connection switch blocks can be nested:
+
+```ruby
+Octoshark.with_connection(:db1) do
+  # work with db1
+
+  Octoshark.with_connection(:db2) do
+    # work with db2
+  end
+
+  # work with db1
+end
+```
+
+
+## Sharding Example
+
+For example, let's say we have few models that are in the default Rails database (User, Account, etc) and few models that we want to shard (Blog, Post, Comment, etc). For all models in the default database, we can use the default ActiveRecord connection, and for all sharded models we need to the Octoshark connection.
+
+We specify the connection for the sharded models based on the shard key (User) in a controller with an around filter:
+
+```ruby
+# before_filter :find_user
+around_filter :select_shard
+
+def select_shard(&block)
+  Octoshark.with_connection(current_user.shard, &block)
+end
+```
+
+Similarly, in all other application entry-points that start with the default ActiveRecord connection (background jobs for an example), we need to switch the shard connection and then proceed.
+
+
+## Database Cleaner
+
+Here's an example how to clean default and shard databases using both default connection and Octoshark connections:
+
+```ruby
+config.before(:suite) do
+  clean_database_with(:truncation)
+end
+
+config.before(:each) do
+  DatabaseCleaner.start
+end
+
+config.after(:each) do
+  clean_database_with(:transaction)
+end
+
+def clean_database_with
+  # default ActiveRecord::Base connection pool
+  DatabaseCleaner[:active_record, {connection: ActiveRecord::Base.connection_pool}]
+
+  # Octoshark connection pool for the connection
+  Octoshark.connection_pools.each_pair do |name, connection_pool|
+    DatabaseCleaner[:active_record, {connection: connection_pool}]
+  end
+
+  DatabaseCleaner.clean_with(strategy)
+end
+```
+
 
 ## Contributing
 
