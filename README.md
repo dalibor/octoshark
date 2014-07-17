@@ -1,6 +1,6 @@
 # Octoshark
 
-Octoshark is an ActiveRecord connection manager.
+Octoshark is an ActiveRecord connection switcher.
 
 ## Installation
 

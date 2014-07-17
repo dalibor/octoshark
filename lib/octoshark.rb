@@ -2,27 +2,27 @@ require "octoshark/version"
 require 'active_record'
 
 module Octoshark
-  autoload :ConnectionManager, 'octoshark/connection_manager'
+  autoload :ConnectionSwitcher, 'octoshark/connection_switcher'
 
   class NotConfiguredError < RuntimeError; end
   class NoConnectionError < StandardError; end;
 
   class << self
     delegate :current_connection, :with_connection, :connection,
-      :connection_pools, :find_connection_pool, to: :connection_manager
+      :connection_pools, :find_connection_pool, to: :switcher
   end
 
   def self.setup(configs)
-    @connection_manager = ConnectionManager.new(configs)
+    @switcher = ConnectionSwitcher.new(configs)
   end
 
   def self.reset!
-    @connection_manager = nil
+    @switcher = nil
   end
 
-  def self.connection_manager
-    if @connection_manager
-      @connection_manager
+  def self.switcher
+    if @switcher
+      @switcher
     else
       raise NotConfiguredError, "Octoshark is not setup. Setup connections with Octoshark.setup(configs)"
     end

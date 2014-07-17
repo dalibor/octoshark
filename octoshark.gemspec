@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Octoshark::VERSION
   spec.authors       = ["Dalibor Nasevic"]
   spec.email         = ["dalibor.nasevic@gmail.com"]
-  spec.summary       = %q{Octoshark is an ActiveRecord connection manager}
-  spec.description   = %q{Octoshark is a connection manager for switching between multiple ActiveRecord connections}
+  spec.summary       = %q{Octoshark is an ActiveRecord connection switcher}
+  spec.description   = %q{Octoshark is a library for switching between multiple ActiveRecord connections}
   spec.homepage      = ""
   spec.license       = "MIT"
 

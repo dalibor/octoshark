@@ -1,5 +1,5 @@
 module Octoshark
-  class ConnectionManager
+  class ConnectionSwitcher
 
     attr_reader :connection_pools
 
