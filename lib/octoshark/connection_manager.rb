@@ -23,6 +23,22 @@ module Octoshark
       Thread.current[:octoshark] = find_connection_pool(name).connection
     end
 
+    def with_connection(name, &block)
+      result = nil
+
+      find_connection_pool(name).with_connection do |connection|
+        previous_connection = Thread.current[:octoshark]
+        Thread.current[:octoshark] = connection
+        begin
+          result = yield(connection)
+        ensure
+          Thread.current[:octoshark] = previous_connection
+        end
+      end
+
+      result
+    end
+
     def find_connection_pool(name, &block)
       connection_pool = @connection_pools[name]
 

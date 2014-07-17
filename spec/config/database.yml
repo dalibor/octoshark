@@ -1,2 +1,2 @@
 adapter: sqlite3
-database: tmp/master.sqlite
+database: tmp/default.sqlite
