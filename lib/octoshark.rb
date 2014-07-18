@@ -11,7 +11,8 @@ module Octoshark
   OCTOSHARK = :octoshark
 
   class << self
-    delegate :current_connection, :with_connection, :connection,
+    delegate :current_connection, :with_connection,
+      :connection, :current_or_default_connection,
       :connection_pools, :find_connection_pool, to: :switcher
   end
 

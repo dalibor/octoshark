@@ -14,7 +14,8 @@ describe Octoshark do
   end
 
   [
-    :current_connection, :with_connection, :connection,
+    :current_connection, :with_connection,
+    :connection, :current_or_default_connection,
     :connection_pools, :find_connection_pool
   ].each do |method_name|
     it "delegates #{method_name} to connection switcher" do

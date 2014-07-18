@@ -19,6 +19,10 @@ module Octoshark
       Thread.current[OCTOSHARK] || raise(NoCurrentConnectionError, "No current connection.")
     end
 
+    def current_or_default_connection
+      Thread.current[OCTOSHARK] || @default_pool.connection
+    end
+
     def connection(name)
       Thread.current[OCTOSHARK] = find_connection_pool(name).connection
     end
