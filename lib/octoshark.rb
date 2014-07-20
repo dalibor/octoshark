@@ -30,12 +30,17 @@ module Octoshark
   end
 
   def self.reload!
-    raise(NotConfiguredError, "Octoshark is not setup") unless @configs
+    raise_not_configured_error unless @configs
     disconnect!
     @switcher = ConnectionSwitcher.new(@configs)
   end
 
   def self.switcher
-    @switcher || raise(NotConfiguredError, "Octoshark is not setup")
+    @switcher || raise_not_configured_error
+  end
+
+  private
+  def self.raise_not_configured_error
+    raise NotConfiguredError, "Octoshark is not setup"
   end
 end
