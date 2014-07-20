@@ -46,5 +46,11 @@ module Octoshark
     def find_connection_pool(name, &block)
       @connection_pools[name] || raise(NoConnectionError, "No such database connection '#{name}'")
     end
+
+    def disconnect!
+      @connection_pools.values.each do |connection_pool|
+        connection_pool.disconnect!
+      end
+    end
   end
 end

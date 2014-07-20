@@ -24,6 +24,10 @@ describe Octoshark do
 
       expect(Thread.current[Octoshark::OCTOSHARK]).to be_nil
     end
+
+    it "cleans old connections" do
+      check_connections_clean_up { Octoshark.reset! }
+    end
   end
 
   describe ".reload!" do
@@ -35,6 +39,10 @@ describe Octoshark do
 
       expect(Octoshark.switcher).to_not be_nil
       expect(Octoshark.switcher).to_not eq(switcher)
+    end
+
+    it "clears old switcher connections" do
+      check_connections_clean_up { Octoshark.reload! }
     end
   end
 

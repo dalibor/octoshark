@@ -1,4 +1,4 @@
-require "octoshark/version"
+require 'octoshark/version'
 require 'active_record'
 
 module Octoshark
@@ -13,7 +13,8 @@ module Octoshark
   class << self
     delegate :current_connection, :with_connection,
       :connection, :current_or_default_connection,
-      :connection_pools, :find_connection_pool, to: :switcher
+      :connection_pools, :find_connection_pool,
+      :disconnect!, to: :switcher
   end
 
   def self.setup(configs)
@@ -22,6 +23,7 @@ module Octoshark
   end
 
   def self.reset!
+    disconnect! if @switcher
     @confings = nil
     @switcher = nil
     Thread.current[OCTOSHARK] = nil
@@ -29,6 +31,7 @@ module Octoshark
 
   def self.reload!
     raise(NotConfiguredError, "Octoshark is not setup") unless @configs
+    disconnect!
     @switcher = ConnectionSwitcher.new(@configs)
   end
 

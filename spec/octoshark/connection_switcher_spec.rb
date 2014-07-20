@@ -130,4 +130,17 @@ describe Octoshark::ConnectionSwitcher do
       expect { switcher.with_connection(:invalid) }.to raise_error(Octoshark::NoConnectionError)
     end
   end
+
+  describe "#disconnect!" do
+    it "removes all connections from connection pools" do
+      switcher = Octoshark::ConnectionSwitcher.new({})
+
+      switcher.with_connection(:default) { |connection| connection.execute("SELECT 1") }
+      expect(switcher.find_connection_pool(:default)).to be_connected
+
+      switcher.disconnect!
+
+      expect(switcher.find_connection_pool(:default)).to_not be_connected
+    end
+  end
 end
