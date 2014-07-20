@@ -46,6 +46,18 @@ describe Octoshark do
     end
   end
 
+  describe ".enabled?" do
+    it "is not enabled by default" do
+      expect(Octoshark.enabled?).to be_falsey
+    end
+
+    it "is enabled when it's setup" do
+      Octoshark.setup({})
+
+      expect(Octoshark.enabled?).to be_truthy
+    end
+  end
+
   describe ".switcher" do
     it "returns connection switcher" do
       Octoshark.setup({})

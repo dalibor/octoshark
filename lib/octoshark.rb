@@ -1,5 +1,6 @@
 require 'octoshark/version'
 require 'active_record'
+require 'octoshark/active_record_extensions'
 
 module Octoshark
   autoload :ConnectionSwitcher, 'octoshark/connection_switcher'
@@ -22,7 +23,8 @@ module Octoshark
     end
 
     def reset!
-      disconnect! if @switcher
+      return unless enabled?
+      disconnect!
       @confings = nil
       @switcher = nil
       Thread.current[OCTOSHARK] = nil
@@ -32,6 +34,10 @@ module Octoshark
       raise_not_configured_error unless @configs
       disconnect!
       @switcher = ConnectionSwitcher.new(@configs)
+    end
+
+    def enabled?
+      !@switcher.nil?
     end
 
     def switcher
