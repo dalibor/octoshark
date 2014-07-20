@@ -23,10 +23,6 @@ module Octoshark
       Thread.current[OCTOSHARK] || @default_pool.connection
     end
 
-    def connection(name)
-      Thread.current[OCTOSHARK] = find_connection_pool(name).connection
-    end
-
     def with_connection(name, &block)
       result = nil
 
