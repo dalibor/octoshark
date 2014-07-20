@@ -17,19 +17,22 @@ module Octoshark
   end
 
   def self.setup(configs)
+    @configs = configs
     @switcher = ConnectionSwitcher.new(configs)
   end
 
   def self.reset!
+    @confings = nil
     @switcher = nil
     Thread.current[OCTOSHARK] = nil
   end
 
+  def self.reload!
+    raise(NotConfiguredError, "Octoshark is not setup") unless @configs
+    @switcher = ConnectionSwitcher.new(@configs)
+  end
+
   def self.switcher
-    if @switcher
-      @switcher
-    else
-      raise NotConfiguredError, "Octoshark is not setup. Setup connections with Octoshark.setup(configs)"
-    end
+    @switcher || raise(NotConfiguredError, "Octoshark is not setup")
   end
 end
