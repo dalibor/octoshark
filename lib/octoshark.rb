@@ -15,32 +15,32 @@ module Octoshark
       :connection, :current_or_default_connection,
       :connection_pools, :find_connection_pool,
       :disconnect!, to: :switcher
-  end
 
-  def self.setup(configs)
-    @configs = configs
-    @switcher = ConnectionSwitcher.new(configs)
-  end
+    def setup(configs)
+      @configs = configs
+      @switcher = ConnectionSwitcher.new(configs)
+    end
 
-  def self.reset!
-    disconnect! if @switcher
-    @confings = nil
-    @switcher = nil
-    Thread.current[OCTOSHARK] = nil
-  end
+    def reset!
+      disconnect! if @switcher
+      @confings = nil
+      @switcher = nil
+      Thread.current[OCTOSHARK] = nil
+    end
 
-  def self.reload!
-    raise_not_configured_error unless @configs
-    disconnect!
-    @switcher = ConnectionSwitcher.new(@configs)
-  end
+    def reload!
+      raise_not_configured_error unless @configs
+      disconnect!
+      @switcher = ConnectionSwitcher.new(@configs)
+    end
 
-  def self.switcher
-    @switcher || raise_not_configured_error
-  end
+    def switcher
+      @switcher || raise_not_configured_error
+    end
 
-  private
-  def self.raise_not_configured_error
-    raise NotConfiguredError, "Octoshark is not setup"
+    private
+    def raise_not_configured_error
+      raise NotConfiguredError, "Octoshark is not setup"
+    end
   end
 end
