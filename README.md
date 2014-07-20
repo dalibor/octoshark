@@ -2,7 +2,7 @@
 
 # Octoshark
 
-Octoshark is a simple ActiveRecord connection switcher. It provides a general purpose connection switching that can be used in a multi-database systems such as sharded environments in your Rails application. It **does not** monkey-patch any `ActiveRecord::Base` methods and requires to specify which ActiveRecord models will use the Octoshark connection.
+Octoshark is a simple ActiveRecord connection switcher. It provides a general purpose connection switching mechanism that can be used in sharding and master-slave multi-database environments. It's up to you to specify how ActiveRecord models will use the Octoshark connections, see below for example scenarios.
 
 
 ## Installation
@@ -56,7 +56,11 @@ Octoshark.with_connection(:db1) do
 end
 ```
 
-Octoshark connection is changed for the duration of that block and then reversed back to the previous connection. Multiple connection switch blocks can be nested:
+Octoshark connection is changed for the duration of the block and then reversed back to the previous connection.
+
+`Octoshark.current_connection` returns the active connection while in `with_connection` block, and outside it raises `Octoshark::NoCurrentConnectionError` error.
+
+Multiple connection switch blocks can be nested:
 
 ```ruby
 Octoshark.with_connection(:db1) do
@@ -89,6 +93,32 @@ end
 Similarly, in all other application entry-points that start with the default ActiveRecord connection (background jobs for an example), we need to switch the shard connection and then proceed.
 
 
+## Master-Slave Example
+
+When we want to do something in the slave database with all ActiveRecord models, then we need to add Octoshark's current or default connection to all models, either by overriding `ActiveRecord:Base.connection` or using a module that we include in all models.
+
+```ruby
+class ActiveRecord::Base
+  def self.connection
+    Octoshark.current_or_default_connection
+  end
+end
+```
+
+Here we use `Octoshark.current_or_default_connection` method which returns the current connection while in `with_connection` block and fallback to the default connection when outside.
+
+
+## Octoshark.reload!
+
+While Octoshark tries hard to avoid any **monkey-patching** of `ActiveRecord`, there is a single patch it applies so that end-user does not have to do it manually. Basically, whenever ActiveRecord::Base establishes a new database connection, `Octoshark.reload!` needs to be called. This is necessary for Octoshark to disconnect old connection pools and set new ones, otherwise `ActiveRecord::ConnectionNotEstablished` will be raised.
+
+Few examples where database connections are re-established:
+
+* Unicorn before/after fork
+* Spring prefork/serve
+* Some rake tasks like `rake db:test:prepare`
+
+
 ## Database Cleaner
 
 Here's an example how to clean default and shard databases using both default connection and Octoshark connections:
@@ -118,7 +148,6 @@ def clean_database_with
   DatabaseCleaner.clean_with(strategy)
 end
 ```
-
 
 ## Contributing
 

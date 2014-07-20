@@ -1,5 +1,6 @@
-require "octoshark/version"
+require 'octoshark/version'
 require 'active_record'
+require 'octoshark/active_record_extensions'
 
 module Octoshark
   autoload :ConnectionSwitcher, 'octoshark/connection_switcher'
@@ -11,24 +12,41 @@ module Octoshark
   OCTOSHARK = :octoshark
 
   class << self
-    delegate :current_connection, :with_connection, :connection,
-      :connection_pools, :find_connection_pool, to: :switcher
-  end
+    delegate :current_connection, :with_connection,
+      :connection, :current_or_default_connection,
+      :connection_pools, :find_connection_pool,
+      :disconnect!, to: :switcher
 
-  def self.setup(configs)
-    @switcher = ConnectionSwitcher.new(configs)
-  end
+    def setup(configs)
+      @configs = configs
+      @switcher = ConnectionSwitcher.new(configs)
+    end
 
-  def self.reset!
-    @switcher = nil
-    Thread.current[OCTOSHARK] = nil
-  end
+    def reset!
+      return unless enabled?
+      disconnect!
+      @confings = nil
+      @switcher = nil
+      Thread.current[OCTOSHARK] = nil
+    end
 
-  def self.switcher
-    if @switcher
-      @switcher
-    else
-      raise NotConfiguredError, "Octoshark is not setup. Setup connections with Octoshark.setup(configs)"
+    def reload!
+      raise_not_configured_error unless @configs
+      disconnect!
+      @switcher = ConnectionSwitcher.new(@configs)
+    end
+
+    def enabled?
+      !@switcher.nil?
+    end
+
+    def switcher
+      @switcher || raise_not_configured_error
+    end
+
+    private
+    def raise_not_configured_error
+      raise NotConfiguredError, "Octoshark is not setup"
     end
   end
 end

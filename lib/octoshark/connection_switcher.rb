@@ -16,11 +16,11 @@ module Octoshark
     end
 
     def current_connection
-      Thread.current[OCTOSHARK] || raise(NoCurrentConnectionError, "No current connection.")
+      Thread.current[OCTOSHARK] || raise(NoCurrentConnectionError, "No current connection")
     end
 
-    def connection(name)
-      Thread.current[OCTOSHARK] = find_connection_pool(name).connection
+    def current_or_default_connection
+      Thread.current[OCTOSHARK] || @default_pool.connection
     end
 
     def with_connection(name, &block)
@@ -40,12 +40,12 @@ module Octoshark
     end
 
     def find_connection_pool(name, &block)
-      connection_pool = @connection_pools[name]
+      @connection_pools[name] || raise(NoConnectionError, "No such database connection '#{name}'")
+    end
 
-      if connection_pool
-        connection_pool
-      else
-        raise NoConnectionError, "No such database connection '#{name}'"
+    def disconnect!
+      @connection_pools.values.each do |connection_pool|
+        connection_pool.disconnect!
       end
     end
   end
