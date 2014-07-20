@@ -10,7 +10,7 @@ RSpec.configure do |config|
   config.include Helpers
 
   config.before :each do
-    ActiveRecord::Base.establish_connection(YAML.load(File.read('spec/config/database.yml')))
+    ActiveRecord::Base.establish_connection({adapter: 'sqlite3', database: 'tmp/default.sqlite'})
     Octoshark.reset!
   end
 end

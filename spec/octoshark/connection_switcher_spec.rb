@@ -1,15 +1,6 @@
 require 'spec_helper'
 
 describe Octoshark::ConnectionSwitcher do
-  let(:config) { {
-    db1: { adapter: "sqlite3", database: "tmp/db1.sqlite" },
-    db2: { adapter: "sqlite3", database: "tmp/db2.sqlite" }
-  } }
-
-  def current_database_name(connection)
-    connection.execute('PRAGMA database_list').first['file'].split('/').last
-  end
-
   describe "#initialize" do
     it "can initialize connection switcher with default connection" do
       switcher = Octoshark::ConnectionSwitcher.new
@@ -20,7 +11,7 @@ describe Octoshark::ConnectionSwitcher do
     end
 
     it "can initialize connection switcher with custom connections" do
-      switcher = Octoshark::ConnectionSwitcher.new(config)
+      switcher = Octoshark::ConnectionSwitcher.new(configs)
 
       expect(switcher.connection_pools.length).to eq(3)
       expect(switcher.connection_pools[:default]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
@@ -30,7 +21,7 @@ describe Octoshark::ConnectionSwitcher do
 
   describe "#current_connection" do
     it "returns last used connection as current one" do
-      switcher = Octoshark::ConnectionSwitcher.new(config)
+      switcher = Octoshark::ConnectionSwitcher.new(configs)
       connection = switcher.connection(:db1)
 
       expect(switcher.current_connection).to eq(connection)
@@ -45,7 +36,7 @@ describe Octoshark::ConnectionSwitcher do
 
   describe "#current_or_default_connection" do
     it "returns last used connection as current one" do
-      switcher = Octoshark::ConnectionSwitcher.new(config)
+      switcher = Octoshark::ConnectionSwitcher.new(configs)
       connection = switcher.connection(:db1)
 
       expect(switcher.current_or_default_connection).to eq(connection)
@@ -61,7 +52,7 @@ describe Octoshark::ConnectionSwitcher do
 
   describe '#find_connection_pool' do
     it "can find connection pool by name" do
-      switcher = Octoshark::ConnectionSwitcher.new(config)
+      switcher = Octoshark::ConnectionSwitcher.new(configs)
       expect(switcher.find_connection_pool(:db1)).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
     end
 
@@ -73,9 +64,9 @@ describe Octoshark::ConnectionSwitcher do
 
   describe "#connection" do
     it "returns useful connection from the pool" do
-      switcher = Octoshark::ConnectionSwitcher.new(config)
+      switcher = Octoshark::ConnectionSwitcher.new(configs)
       connection = switcher.connection(:db1)
-      expect(current_database_name(connection)).to eq("db1.sqlite")
+      expect(db(connection)).to eq("db1")
     end
 
     it "raises Octoshark::NoConnectionError" do
@@ -90,37 +81,37 @@ describe Octoshark::ConnectionSwitcher do
       switcher = Octoshark::ConnectionSwitcher.new({})
 
       switcher.with_connection(:default) do |connection|
-        expect(current_database_name(switcher.current_connection)).to eq("default.sqlite")
+        expect(db(switcher.current_connection)).to eq("default")
       end
     end
 
     it "can use multiple connections" do
-      switcher = Octoshark::ConnectionSwitcher.new(config)
+      switcher = Octoshark::ConnectionSwitcher.new(configs)
 
       switcher.with_connection(:default) do |connection|
-        expect(current_database_name(switcher.current_connection)).to eq("default.sqlite")
+        expect(db(switcher.current_connection)).to eq("default")
       end
 
       switcher.with_connection(:db1) do |connection|
-        expect(current_database_name(switcher.current_connection)).to eq("db1.sqlite")
+        expect(db(switcher.current_connection)).to eq("db1")
       end
 
       switcher.with_connection(:db2) do |connection|
-        expect(current_database_name(switcher.current_connection)).to eq("db2.sqlite")
+        expect(db(switcher.current_connection)).to eq("db2")
       end
     end
 
     it "can nest connection" do
-      switcher = Octoshark::ConnectionSwitcher.new(config)
+      switcher = Octoshark::ConnectionSwitcher.new(configs)
 
       switcher.with_connection(:db1) do |connection|
-        expect(current_database_name(switcher.current_connection)).to eq("db1.sqlite")
+        expect(db(switcher.current_connection)).to eq("db1")
 
         switcher.with_connection(:db2) do |connection|
-          expect(current_database_name(switcher.current_connection)).to eq("db2.sqlite")
+          expect(db(switcher.current_connection)).to eq("db2")
         end
 
-        expect(current_database_name(switcher.current_connection)).to eq("db1.sqlite")
+        expect(db(switcher.current_connection)).to eq("db1")
       end
     end
 
