@@ -15,11 +15,15 @@ module Octoshark
     end
 
     def current_connection
-      Thread.current[OCTOSHARK] || raise(NoCurrentConnectionError, "No current connection, use Octoshark.with_connection")
+      current_details[:connection] || raise(NoCurrentConnectionError, "No current connection, use Octoshark.with_connection")
     end
 
     def current_or_default_connection
-      Thread.current[OCTOSHARK] || @default_pool.connection
+      current_details[:connection] || @default_pool.connection
+    end
+
+    def current_connection_name
+      current_details[:name]
     end
 
     def with_connection(name, &block)
@@ -27,7 +31,8 @@ module Octoshark
 
       find_connection_pool(name).with_connection do |connection|
         previous_connection = Thread.current[OCTOSHARK]
-        Thread.current[OCTOSHARK] = connection
+        Thread.current[OCTOSHARK] = { name: name, connection: connection }
+
         begin
           result = yield(connection)
         ensure
@@ -55,6 +60,10 @@ module Octoshark
       else
         spec_class = ActiveRecord::Base::ConnectionSpecification
       end
+    end
+
+    def current_details
+      Thread.current[OCTOSHARK] || {}
     end
   end
 end

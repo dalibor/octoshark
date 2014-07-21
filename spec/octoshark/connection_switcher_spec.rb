@@ -57,6 +57,22 @@ describe Octoshark::ConnectionSwitcher do
     end
   end
 
+  describe "#current_connection_name" do
+    it "returns current connection" do
+      switcher = Octoshark::ConnectionSwitcher.new(configs)
+
+      switcher.with_connection(:db1) do |connection|
+        expect(switcher.current_connection_name).to eq(:db1)
+      end
+    end
+
+    it "returns nil when no current connection" do
+      switcher = Octoshark::ConnectionSwitcher.new
+
+      expect(switcher.current_connection_name).to be_nil
+    end
+  end
+
   describe '#find_connection_pool' do
     it "can find connection pool by name" do
       switcher = Octoshark::ConnectionSwitcher.new(configs)
