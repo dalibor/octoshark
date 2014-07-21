@@ -37,7 +37,7 @@ module Octoshark
       result
     end
 
-    def find_connection_pool(name, &block)
+    def find_connection_pool(name)
       @connection_pools[name] || raise(NoConnectionError, "No such database connection '#{name}'")
     end
 
