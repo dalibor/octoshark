@@ -116,7 +116,7 @@ Here we use `Octoshark.current_or_default_connection` method which returns the c
 
 ## Octoshark.reload!
 
-While Octoshark tries hard to avoid any **monkey-patching** of `ActiveRecord`, there is a single patch it applies so that end-user does not have to do it manually. Basically, whenever ActiveRecord::Base establishes a new database connection, `Octoshark.reload!` needs to be called. This is necessary for Octoshark to disconnect old connection pools and set new ones, otherwise `ActiveRecord::ConnectionNotEstablished` will be raised.
+Whenever ActiveRecord::Base establishes a new database connection, `Octoshark.reload!` is called. This is necessary for Octoshark to disconnect old connection pools and set new ones, otherwise `ActiveRecord::ConnectionNotEstablished` will be raised.
 
 Few examples where database connections are re-established:
 
