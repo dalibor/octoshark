@@ -1,5 +1,5 @@
 module Octoshark
-  module ActiveRecordExtensions
+  module ActiveRecordBase
     extend ActiveSupport::Concern
 
     included do
@@ -15,6 +15,23 @@ module Octoshark
       end
     end
   end
+
+  module ActiveRecordLogSubscriber
+    extend ActiveSupport::Concern
+
+    included do
+      alias_method_chain :debug, :octoshark
+    end
+
+    def debug_with_octoshark(msg)
+      prefix = if Octoshark.current_connection_name.present?
+                 color("[Octoshark: #{Octoshark.current_connection_name}]",
+                       ActiveSupport::LogSubscriber::GREEN, true)
+               end
+      debug_without_octoshark("#{prefix}#{msg}")
+    end
+  end
 end
 
-ActiveRecord::Base.send(:include, Octoshark::ActiveRecordExtensions)
+ActiveRecord::Base.send(:include, Octoshark::ActiveRecordBase)
+ActiveRecord::LogSubscriber.send(:include, Octoshark::ActiveRecordLogSubscriber)
