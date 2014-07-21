@@ -17,13 +17,13 @@ module Octoshark
       :connection_pools, :find_connection_pool,
       :disconnect!, to: :switcher
 
-    def setup(configs)
+    def configure(configs)
       @configs = configs
       @switcher = ConnectionSwitcher.new(configs)
     end
 
     def reset!
-      return unless enabled?
+      return unless configured?
       disconnect!
       @confings = nil
       @switcher = nil
@@ -36,7 +36,7 @@ module Octoshark
       @switcher = ConnectionSwitcher.new(@configs)
     end
 
-    def enabled?
+    def configured?
       !@switcher.nil?
     end
 
@@ -46,7 +46,7 @@ module Octoshark
 
     private
     def raise_not_configured_error
-      raise NotConfiguredError, "Octoshark is not setup"
+      raise NotConfiguredError, "Octoshark is not configured, use Octoshark.configure"
     end
   end
 end

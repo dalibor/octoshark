@@ -31,7 +31,7 @@ $ gem install octoshark
 Specify the connections for Octoshark to manage. This is usually done in an app initializer.
 
 ```ruby
-Octoshark.setup({
+Octoshark.configure({
   db1: { adapter: "sqlite3", database: "db/db1.sqlite" },
   db2: { adapter: "sqlite3", database: "db/db2.sqlite" }
 })
@@ -100,6 +100,12 @@ When we want to do something in the slave database with all ActiveRecord models,
 ```ruby
 class ActiveRecord::Base
   def self.connection
+    # Some rake tasks like `rake db:create` does not load initializers,
+    # and because we're overriding ActiveRecord::Base.connection,
+    # we need to make sure Octoshark is configured before using it.
+    Octoshark.configure(configs) unless Octoshark.configured?
+
+    # Return the current connection (from with_connection block) or default one
     Octoshark.current_or_default_connection
   end
 end

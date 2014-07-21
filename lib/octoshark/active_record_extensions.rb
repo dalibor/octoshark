@@ -11,7 +11,7 @@ module Octoshark
     module ClassMethods
       def establish_connection_with_octoshark(*args)
         establish_connection_without_octoshark(*args)
-        Octoshark.reload! if Octoshark.enabled?
+        Octoshark.reload! if Octoshark.configured?
       end
     end
   end
