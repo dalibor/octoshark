@@ -4,6 +4,7 @@ module Octoshark
     attr_reader :connection_pools
 
     def initialize(configs = {})
+      configs           = configs.with_indifferent_access
       @default_pool     = ActiveRecord::Base.connection_pool
       @connection_pools = { default: @default_pool }.with_indifferent_access
 

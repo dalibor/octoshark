@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Octoshark::ConnectionSwitcher do
   describe "#initialize" do
-    it "can initialize connection switcher with default connection" do
+    it "initializes connection switcher with default connection" do
       switcher = Octoshark::ConnectionSwitcher.new
       conn = ActiveRecord::Base.connection
 
@@ -10,12 +10,19 @@ describe Octoshark::ConnectionSwitcher do
       expect(switcher.connection_pools[:default]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
     end
 
-    it "can initialize connection switcher with custom connections" do
+    it "initializes connection switcher with custom connections" do
       switcher = Octoshark::ConnectionSwitcher.new(configs)
 
       expect(switcher.connection_pools.length).to eq(3)
       expect(switcher.connection_pools[:default]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
       expect(switcher.connection_pools[:db1]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
+    end
+
+    it "accepts configs with string keys" do
+      configs = { 'db1' => { 'adapter' => "sqlite3", 'database' => "tmp/db1.sqlite" } }
+      switcher = Octoshark::ConnectionSwitcher.new(configs)
+
+      expect { switcher.connection_pools[:db1].connection }.not_to raise_error
     end
   end
 
