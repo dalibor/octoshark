@@ -24,7 +24,7 @@ module Octoshark
     end
 
     def debug_with_octoshark(msg)
-      prefix = if Octoshark.current_connection_name.present?
+      prefix = if Octoshark.configured? && Octoshark.current_connection_name
                  color("[Octoshark: #{Octoshark.current_connection_name}]",
                        ActiveSupport::LogSubscriber::GREEN, true)
                end
