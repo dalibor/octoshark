@@ -15,7 +15,7 @@ module Helpers
   end
 
   def check_connections_clean_up
-    Octoshark.setup({})
+    Octoshark.configure({})
     switcher = Octoshark.switcher
 
     Octoshark.with_connection(:default) { |connection| connection.execute("SELECT 1") }

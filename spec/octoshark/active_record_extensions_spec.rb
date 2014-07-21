@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Octoshark::ActiveRecordExtensions do
 
   it "reloads Octoshark when re-establishing new connection" do
-    Octoshark.setup(configs)
+    Octoshark.configure(configs)
     spec = ActiveRecord::Base.remove_connection
 
     expect { Octoshark.with_connection(:default) {} }.to raise_error(ActiveRecord::ConnectionNotEstablished)

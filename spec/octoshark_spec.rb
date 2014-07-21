@@ -2,9 +2,9 @@ require 'spec_helper'
 
 describe Octoshark do
 
-  describe ".setup" do
+  describe ".configure" do
     it "creates connection switcher" do
-      Octoshark.setup({})
+      Octoshark.configure({})
 
       expect(Octoshark.switcher).to_not be_nil
     end
@@ -12,14 +12,14 @@ describe Octoshark do
 
   describe ".reset!" do
     it "removes connection switcher" do
-      Octoshark.setup({})
+      Octoshark.configure({})
       Octoshark.reset!
 
       expect { Octoshark.switcher }.to raise_error(Octoshark::NotConfiguredError)
     end
 
     it "cleans octoshark thread key" do
-      Octoshark.setup({})
+      Octoshark.configure({})
       Octoshark.reset!
 
       expect(Thread.current[Octoshark::OCTOSHARK]).to be_nil
@@ -32,7 +32,7 @@ describe Octoshark do
 
   describe ".reload!" do
     it "replaces connection switcher" do
-      Octoshark.setup({})
+      Octoshark.configure({})
       switcher = Octoshark.switcher
 
       Octoshark.reload!
@@ -46,26 +46,26 @@ describe Octoshark do
     end
   end
 
-  describe ".enabled?" do
-    it "is not enabled by default" do
-      expect(Octoshark.enabled?).to be_falsey
+  describe ".configured?" do
+    it "is not configured by default" do
+      expect(Octoshark.configured?).to be_falsey
     end
 
-    it "is enabled when it's setup" do
-      Octoshark.setup({})
+    it "is configured is switcher is configured" do
+      Octoshark.configure({})
 
-      expect(Octoshark.enabled?).to be_truthy
+      expect(Octoshark.configured?).to be_truthy
     end
   end
 
   describe ".switcher" do
     it "returns connection switcher" do
-      Octoshark.setup({})
+      Octoshark.configure({})
 
       expect(Octoshark.switcher).to be_an_instance_of(Octoshark::ConnectionSwitcher)
     end
 
-    it "raises 'NotConfiguredError' error if not setup" do
+    it "raises 'NotConfiguredError' error if not configured" do
       expect { Octoshark.switcher }.to raise_error(Octoshark::NotConfiguredError)
     end
   end
@@ -77,7 +77,7 @@ describe Octoshark do
   ].each do |method_name|
     describe ".#{method_name}" do
       it "delegates #{method_name} to connection switcher" do
-        Octoshark.setup({})
+        Octoshark.configure({})
         expect(Octoshark.switcher).to receive(method_name)
 
         Octoshark.send(method_name)

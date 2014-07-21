@@ -16,7 +16,7 @@ module Octoshark
     end
 
     def current_connection
-      Thread.current[OCTOSHARK] || raise(NoCurrentConnectionError, "No current connection")
+      Thread.current[OCTOSHARK] || raise(NoCurrentConnectionError, "No current connection, use Octoshark.with_connection")
     end
 
     def current_or_default_connection
