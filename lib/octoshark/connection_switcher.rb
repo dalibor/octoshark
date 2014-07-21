@@ -8,9 +8,7 @@ module Octoshark
       @connection_pools = { default: @default_pool }.with_indifferent_access
 
       configs.each_pair do |name, config|
-        spec = ActiveRecord::ConnectionAdapters::ConnectionSpecification.new(
-          config, "#{config[:adapter]}_connection"
-        )
+        spec = spec_class.new(config, "#{config[:adapter]}_connection")
         @connection_pools[name] = ActiveRecord::ConnectionAdapters::ConnectionPool.new(spec)
       end
     end
@@ -39,13 +37,22 @@ module Octoshark
       result
     end
 
-    def find_connection_pool(name, &block)
+    def find_connection_pool(name)
       @connection_pools[name] || raise(NoConnectionError, "No such database connection '#{name}'")
     end
 
     def disconnect!
       @connection_pools.values.each do |connection_pool|
         connection_pool.disconnect!
+      end
+    end
+
+    private
+    def spec_class
+      if defined?(ActiveRecord::ConnectionAdapters::ConnectionSpecification)
+        spec_class = ActiveRecord::ConnectionAdapters::ConnectionSpecification
+      else
+        spec_class = ActiveRecord::Base::ConnectionSpecification
       end
     end
   end
