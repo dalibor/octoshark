@@ -16,22 +16,19 @@ module Octoshark
     end
   end
 
-  module ActiveRecordLogSubscriber
-    extend ActiveSupport::Concern
 
-    included do
-      alias_method_chain :debug, :octoshark
-    end
+  module ActiveRecordAbstractAdapter
+    attr_accessor :connection_name
 
-    def debug_with_octoshark(msg)
-      prefix = if Octoshark.configured? && Octoshark.current_connection_name
-                 color("[Octoshark: #{Octoshark.current_connection_name}]",
-                       ActiveSupport::LogSubscriber::GREEN, true)
-               end
-      debug_without_octoshark("#{prefix}#{msg}")
+    def log(sql, name = "SQL", *other_args)
+      if connection_name
+        name = "[Octoshark: #{connection_name}] #{name}"
+      end
+
+      super(sql, name, *other_args)
     end
   end
 end
 
 ActiveRecord::Base.send(:include, Octoshark::ActiveRecordBase)
-ActiveRecord::LogSubscriber.send(:include, Octoshark::ActiveRecordLogSubscriber)
+ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:prepend, Octoshark::ActiveRecordAbstractAdapter)
