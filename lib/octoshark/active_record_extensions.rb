@@ -1,12 +1,8 @@
 module Octoshark
-  module ActiveRecordBase
-    extend ActiveSupport::Concern
-
-    module ClassMethods
-      def establish_connection(*)
-        super
-        Octoshark.reload! if Octoshark.configured?
-      end
+  module EstablishConnectionWithOctosharkReloading
+    def establish_connection(*)
+      super
+      Octoshark.reload! if Octoshark.configured?
     end
   end
 
@@ -23,5 +19,5 @@ module Octoshark
   end
 end
 
-ActiveRecord::Base.send(:include, Octoshark::ActiveRecordBase)
+ActiveRecord::Base.singleton_class.send(:prepend, Octoshark::EstablishConnectionWithOctosharkReloading)
 ActiveRecord::LogSubscriber.send(:include, Octoshark::ActiveRecordLogSubscriber)

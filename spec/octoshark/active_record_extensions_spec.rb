@@ -8,7 +8,7 @@ describe "ActiveRecord Extensions" do
     spec = ActiveRecord::Base.remove_connection
     ActiveRecord::Base.establish_connection(spec)
 
-    expect(ActiveRecord::Base.connection_pool).to eq(Octoshark.find_connection_pool(:default))
+    expect(Octoshark.find_connection_pool(:default)).to eq(ActiveRecord::Base.connection_pool)
   end
 
   it "logs current connection name" do
