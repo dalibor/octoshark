@@ -33,6 +33,8 @@ module Octoshark
         previous_connection = Thread.current[OCTOSHARK]
         Thread.current[OCTOSHARK] = { name: name, connection: connection }
 
+        connection.connection_name = name
+
         begin
           result = yield(connection)
         ensure

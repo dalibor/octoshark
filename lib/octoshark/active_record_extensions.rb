@@ -6,18 +6,18 @@ module Octoshark
     end
   end
 
-  module ActiveRecordLogSubscriber
-    extend ActiveSupport::Concern
+  module ActiveRecordAbstractAdapter
+    attr_accessor :connection_name
 
-    def debug(msg)
-      prefix = if Octoshark.configured? && Octoshark.current_connection_name
-                 color("[Octoshark: #{Octoshark.current_connection_name}]",
-                       ActiveSupport::LogSubscriber::GREEN, true)
-               end
-      super("#{prefix}#{msg}")
+    def log(sql, name = "SQL", *other_args)
+      if connection_name
+        name = "[Octoshark: #{connection_name}] #{name}"
+      end
+
+      super(sql, name, *other_args)
     end
   end
 end
 
 ActiveRecord::Base.singleton_class.send(:prepend, Octoshark::EstablishConnectionWithOctosharkReloading)
-ActiveRecord::LogSubscriber.send(:include, Octoshark::ActiveRecordLogSubscriber)
+ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:prepend, Octoshark::ActiveRecordAbstractAdapter)
