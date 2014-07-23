@@ -42,4 +42,17 @@ describe "ActiveRecord Extensions" do
 
     ActiveRecord::Base.logger = nil
   end
+
+  it "is resilient to other libraries alias_method_chaining #establish_connection" do
+    class << ActiveRecord::Base
+      def establish_connection_with_monkey_patching(*args)
+        # Noop
+        establish_connection_without_monkey_patching(*args)
+      end
+      alias_method_chain :establish_connection, :monkey_patching
+    end
+
+    spec = ActiveRecord::Base.remove_connection
+    ActiveRecord::Base.establish_connection(spec)
+  end
 end
