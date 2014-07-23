@@ -7,5 +7,8 @@ notifications:
     - dalibor.nasevic@gmail.com
 gemfile:
   - gemfiles/rails3.gemfile
+  - gemfiles/rails3.1.gemfile
+  - gemfiles/rails3.2.gemfile
   - gemfiles/rails4.gemfile
+  - gemfiles/rails4.1.gemfile
 script: bundle exec rspec spec
