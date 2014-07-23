@@ -1,21 +1,10 @@
 module Octoshark
-  module ActiveRecordBase
-    extend ActiveSupport::Concern
-
-    included do
-      class << self
-        alias_method_chain :establish_connection, :octoshark
-      end
-    end
-
-    module ClassMethods
-      def establish_connection_with_octoshark(*args)
-        establish_connection_without_octoshark(*args)
-        Octoshark.reload! if Octoshark.configured?
-      end
+  module EstablishConnectionWithOctosharkReloading
+    def establish_connection(*)
+      super
+      Octoshark.reload! if Octoshark.configured?
     end
   end
-
 
   module ActiveRecordAbstractAdapter
     attr_accessor :connection_name
@@ -30,5 +19,5 @@ module Octoshark
   end
 end
 
-ActiveRecord::Base.send(:include, Octoshark::ActiveRecordBase)
+ActiveRecord::Base.singleton_class.send(:prepend, Octoshark::EstablishConnectionWithOctosharkReloading)
 ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:prepend, Octoshark::ActiveRecordAbstractAdapter)
