@@ -1,6 +1,6 @@
-![Travis status](https://travis-ci.org/dalibor/octoshark.png)
+![Octoshark logo](https://dl.dropboxusercontent.com/u/3230730/github/octoshark.png)
 
-# Octoshark
+![Travis status](https://travis-ci.org/dalibor/octoshark.png)
 
 Octoshark is a simple ActiveRecord connection switcher. It provides a general purpose connection switching mechanism that can be used in sharding and master-slave multi-database environments. It's up to you to specify how ActiveRecord models will use the Octoshark connections, see below for example scenarios.
 
@@ -154,6 +154,10 @@ def clean_database_with
   DatabaseCleaner.clean_with(strategy)
 end
 ```
+
+## Logo
+
+Thanks to [@saschamt](https://github.com/saschamt) for Octoshark logo design. :)
 
 ## Contributing
 
