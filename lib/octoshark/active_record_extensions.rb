@@ -17,17 +17,23 @@ module Octoshark
   end
 
   module ActiveRecordAbstractAdapter
+    extend ActiveSupport::Concern
+
     attr_accessor :connection_name
 
-    def log(sql, name = "SQL", *other_args)
+    included do
+      alias_method_chain :log, :octoshark
+    end
+
+    def log_with_octoshark(sql, name = "SQL", *other_args, &block)
       if connection_name
         name = "[Octoshark: #{connection_name}] #{name}"
       end
 
-      super(sql, name, *other_args)
+      log_without_octoshark(sql, name, *other_args, &block)
     end
   end
 end
 
 ActiveRecord::Base.send(:include, Octoshark::ActiveRecordBase)
-ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:prepend, Octoshark::ActiveRecordAbstractAdapter)
+ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:include, Octoshark::ActiveRecordAbstractAdapter)
