@@ -131,27 +131,24 @@ Here's an example how to clean default and shard databases using both default co
 
 ```ruby
 config.before(:suite) do
-  clean_database_with(:truncation)
+  setup_database_cleaner
+  DatabaseCleaner.clean_with(:truncation)
 end
 
 config.before(:each) do
+  setup_database_cleaner
   DatabaseCleaner.start
 end
 
 config.after(:each) do
-  clean_database_with(:transaction)
+  setup_database_cleaner
+  DatabaseCleaner.clean_with(:transaction)
 end
 
-def clean_database_with
-  # default ActiveRecord::Base connection pool
-  DatabaseCleaner[:active_record, {connection: ActiveRecord::Base.connection_pool}]
-
-  # Octoshark connection pool for the connection
-  Octoshark.connection_pools.each_pair do |name, connection_pool|
+def setup_database_cleaner
+  Octoshark.connection_pools.each_pair do |connection_name, connection_pool|
     DatabaseCleaner[:active_record, {connection: connection_pool}]
   end
-
-  DatabaseCleaner.clean_with(strategy)
 end
 ```
 
