@@ -18,6 +18,7 @@ module Octoshark
       :find_connection_pool,
       :with_connection,
       :current_connection,
+      :current_connection?,
       to: :switcher
 
     def configure(configs)

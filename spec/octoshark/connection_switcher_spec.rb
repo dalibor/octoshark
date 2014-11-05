@@ -41,6 +41,21 @@ describe Octoshark::ConnectionSwitcher do
     end
   end
 
+  describe "#current_connection?" do
+    it "returns true if current one" do
+      switcher = Octoshark::ConnectionSwitcher.new(configs)
+      switcher.with_connection(:db1) do |connection|
+        expect(switcher.current_connection?).to be_truthy
+      end
+    end
+
+    it "returns false if no current one" do
+      switcher = Octoshark::ConnectionSwitcher.new
+
+      expect(switcher.current_connection?).to be_falsey
+    end
+  end
+
   describe "#current_or_default_connection" do
     it "returns current connection" do
       switcher = Octoshark::ConnectionSwitcher.new(configs)

@@ -73,6 +73,7 @@ describe Octoshark do
   [
     :connection_pools,
     :current_connection,
+    :current_connection?,
     :current_or_default_connection,
     :disconnect!,
     :find_connection_pool,
