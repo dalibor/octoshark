@@ -12,10 +12,14 @@ module Octoshark
   OCTOSHARK = :octoshark
 
   class << self
-    delegate :current_connection, :with_connection,
-      :connection, :current_or_default_connection,
-      :connection_pools, :find_connection_pool,
-      :disconnect!, to: :switcher
+    delegate :connection_pools,
+      :current_or_default_connection,
+      :disconnect!,
+      :find_connection_pool,
+      :with_connection,
+      :current_connection,
+      :current_connection?,
+      to: :switcher
 
     def configure(configs)
       @configs = configs

@@ -71,14 +71,18 @@ describe Octoshark do
   end
 
   [
-    :current_connection, :with_connection,
-    :connection, :current_or_default_connection,
-    :connection_pools, :find_connection_pool,
-    :disconnect!
+    :connection_pools,
+    :current_connection,
+    :current_connection?,
+    :current_or_default_connection,
+    :disconnect!,
+    :find_connection_pool,
+    :with_connection,
   ].each do |method_name|
     describe ".#{method_name}" do
       it "delegates #{method_name} to connection switcher" do
         Octoshark.configure({})
+        expect(Octoshark.switcher).to respond_to(method_name)
         expect(Octoshark.switcher).to receive(method_name)
 
         Octoshark.send(method_name)
