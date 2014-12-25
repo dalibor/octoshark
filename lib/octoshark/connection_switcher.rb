@@ -27,28 +27,21 @@ module Octoshark
     end
 
     def with_connection(name, &block)
-      result = nil
-
       find_connection_pool(name).with_connection do |connection|
         connection.connection_name = name
 
         change_connection_reference(connection) do
-          result = yield(connection)
+          yield(connection)
         end
       end
-
-      result
     end
 
     def without_connection(&block)
       connection = nil
-      result = nil
 
       change_connection_reference(connection) do
-        result = yield(connection)
+        yield(connection)
       end
-
-      result
     end
 
     def find_connection_pool(name)

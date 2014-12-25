@@ -123,6 +123,12 @@ describe Octoshark::ConnectionSwitcher do
       end
     end
 
+    it "returns value from execution" do
+      switcher = Octoshark::ConnectionSwitcher.new({})
+      result = switcher.with_connection(:default) { |connection| connection.execute("SELECT 1") }
+      expect(result).to eq([{"1"=>1, 0=>1}])
+    end
+
     it "raises Octoshark::NoConnectionError" do
       switcher = Octoshark::ConnectionSwitcher.new({})
 
