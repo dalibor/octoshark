@@ -123,10 +123,32 @@ describe Octoshark::ConnectionSwitcher do
       end
     end
 
+    it "returns value from execution" do
+      switcher = Octoshark::ConnectionSwitcher.new({})
+      result = switcher.with_connection(:default) { |connection| connection.execute("SELECT 1") }
+      expect(result).to eq([{"1"=>1, 0=>1}])
+    end
+
     it "raises Octoshark::NoConnectionError" do
       switcher = Octoshark::ConnectionSwitcher.new({})
 
       expect { switcher.with_connection(:invalid) }.to raise_error(Octoshark::NoConnectionError)
+    end
+  end
+
+  describe '#without_connection' do
+    it "can reset current connection temporarily inside nested connection block" do
+      switcher = Octoshark::ConnectionSwitcher.new({})
+
+      switcher.with_connection(:default) do |connection|
+        expect(db(switcher.current_connection)).to eq("default")
+
+        switcher.without_connection do |connection|
+          expect { switcher.current_connection }.to raise_error(Octoshark::NoCurrentConnectionError)
+        end
+
+        expect(db(switcher.current_connection)).to eq("default")
+      end
     end
   end
 
