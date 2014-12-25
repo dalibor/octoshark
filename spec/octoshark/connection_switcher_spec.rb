@@ -130,6 +130,22 @@ describe Octoshark::ConnectionSwitcher do
     end
   end
 
+  describe '#without_connection' do
+    it "can reset current connection temporarily inside nested connection block" do
+      switcher = Octoshark::ConnectionSwitcher.new({})
+
+      switcher.with_connection(:default) do |connection|
+        expect(db(switcher.current_connection)).to eq("default")
+
+        switcher.without_connection do |connection|
+          expect { switcher.current_connection }.to raise_error(Octoshark::NoCurrentConnectionError)
+        end
+
+        expect(db(switcher.current_connection)).to eq("default")
+      end
+    end
+  end
+
   describe "#disconnect!" do
     it "removes all connections from connection pools" do
       switcher = Octoshark::ConnectionSwitcher.new({})

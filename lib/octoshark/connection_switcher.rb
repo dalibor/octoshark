@@ -30,16 +30,22 @@ module Octoshark
       result = nil
 
       find_connection_pool(name).with_connection do |connection|
-        previous_connection = Thread.current[OCTOSHARK]
-        Thread.current[OCTOSHARK] = connection
-
         connection.connection_name = name
 
-        begin
+        change_connection_reference(connection) do
           result = yield(connection)
-        ensure
-          Thread.current[OCTOSHARK] = previous_connection
         end
+      end
+
+      result
+    end
+
+    def without_connection(&block)
+      connection = nil
+      result = nil
+
+      change_connection_reference(connection) do
+        result = yield(connection)
       end
 
       result
@@ -61,6 +67,17 @@ module Octoshark
         spec_class = ActiveRecord::ConnectionAdapters::ConnectionSpecification
       else
         spec_class = ActiveRecord::Base::ConnectionSpecification
+      end
+    end
+
+    def change_connection_reference(connection)
+      previous_connection = Thread.current[OCTOSHARK]
+      Thread.current[OCTOSHARK] = connection
+
+      begin
+        yield
+      ensure
+        Thread.current[OCTOSHARK] = previous_connection
       end
     end
   end

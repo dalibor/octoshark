@@ -78,6 +78,7 @@ describe Octoshark do
     :disconnect!,
     :find_connection_pool,
     :with_connection,
+    :without_connection,
   ].each do |method_name|
     describe ".#{method_name}" do
       it "delegates #{method_name} to connection switcher" do

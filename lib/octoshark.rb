@@ -17,6 +17,7 @@ module Octoshark
       :disconnect!,
       :find_connection_pool,
       :with_connection,
+      :without_connection,
       :current_connection,
       :current_connection?,
       to: :switcher
