@@ -4,7 +4,6 @@ describe Octoshark::ConnectionSwitcher do
   describe "#initialize" do
     it "initializes connection switcher with default connection" do
       switcher = Octoshark::ConnectionSwitcher.new
-      conn = ActiveRecord::Base.connection
 
       expect(switcher.connection_pools.length).to eq(1)
       expect(switcher.connection_pools[:default]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
@@ -44,7 +43,7 @@ describe Octoshark::ConnectionSwitcher do
   describe "#current_connection?" do
     it "returns true if current one" do
       switcher = Octoshark::ConnectionSwitcher.new(configs)
-      switcher.with_connection(:db1) do |connection|
+      switcher.with_connection(:db1) do
         expect(switcher.current_connection?).to be_truthy
       end
     end
@@ -59,16 +58,16 @@ describe Octoshark::ConnectionSwitcher do
   describe "#current_or_default_connection" do
     it "returns current connection" do
       switcher = Octoshark::ConnectionSwitcher.new(configs)
-      switcher.with_connection(:db1) do |connection|
-        expect(switcher.current_or_default_connection).to eq(connection)
+      switcher.with_connection(:db1) do |db1|
+        expect(switcher.current_or_default_connection).to eq(db1)
       end
     end
 
     it "returns default connection when no current connection" do
       switcher = Octoshark::ConnectionSwitcher.new
-      connection = switcher.find_connection_pool(:default).connection
+      default = switcher.find_connection_pool(:default).connection
 
-      expect(switcher.current_or_default_connection).to eq(connection)
+      expect(switcher.current_or_default_connection).to eq(default)
     end
   end
 
@@ -88,7 +87,7 @@ describe Octoshark::ConnectionSwitcher do
     it "can select default connection" do
       switcher = Octoshark::ConnectionSwitcher.new({})
 
-      switcher.with_connection(:default) do |connection|
+      switcher.with_connection(:default) do
         expect(db(switcher.current_connection)).to eq("default")
       end
     end
@@ -96,15 +95,15 @@ describe Octoshark::ConnectionSwitcher do
     it "can use multiple connections" do
       switcher = Octoshark::ConnectionSwitcher.new(configs)
 
-      switcher.with_connection(:default) do |connection|
+      switcher.with_connection(:default) do
         expect(db(switcher.current_connection)).to eq("default")
       end
 
-      switcher.with_connection(:db1) do |connection|
+      switcher.with_connection(:db1) do
         expect(db(switcher.current_connection)).to eq("db1")
       end
 
-      switcher.with_connection(:db2) do |connection|
+      switcher.with_connection(:db2) do
         expect(db(switcher.current_connection)).to eq("db2")
       end
     end
@@ -112,10 +111,10 @@ describe Octoshark::ConnectionSwitcher do
     it "can nest connection" do
       switcher = Octoshark::ConnectionSwitcher.new(configs)
 
-      switcher.with_connection(:db1) do |connection|
+      switcher.with_connection(:db1) do
         expect(db(switcher.current_connection)).to eq("db1")
 
-        switcher.with_connection(:db2) do |connection|
+        switcher.with_connection(:db2) do
           expect(db(switcher.current_connection)).to eq("db2")
         end
 
@@ -140,7 +139,7 @@ describe Octoshark::ConnectionSwitcher do
     it "can reset current connection temporarily inside nested connection block" do
       switcher = Octoshark::ConnectionSwitcher.new({})
 
-      switcher.with_connection(:default) do |connection|
+      switcher.with_connection(:default) do
         expect(db(switcher.current_connection)).to eq("default")
 
         switcher.without_connection do
