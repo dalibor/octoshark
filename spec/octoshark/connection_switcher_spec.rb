@@ -143,7 +143,7 @@ describe Octoshark::ConnectionSwitcher do
       switcher.with_connection(:default) do |connection|
         expect(db(switcher.current_connection)).to eq("default")
 
-        switcher.without_connection do |connection|
+        switcher.without_connection do
           expect { switcher.current_connection }.to raise_error(Octoshark::NoCurrentConnectionError)
         end
 
