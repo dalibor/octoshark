@@ -37,10 +37,8 @@ module Octoshark
     end
 
     def without_connection(&block)
-      connection = nil
-
-      change_connection_reference(connection) do
-        yield(connection)
+      change_connection_reference(nil) do
+        yield
       end
     end
 
