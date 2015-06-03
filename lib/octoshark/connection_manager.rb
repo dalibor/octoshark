@@ -1,5 +1,5 @@
 module Octoshark
-  class ConnectionSwitcher
+  class ConnectionManager
 
     attr_reader :connection_pools
 
@@ -15,15 +15,15 @@ module Octoshark
     end
 
     def current_connection
-      Thread.current[OCTOSHARK] || raise(NoCurrentConnectionError, "No current connection, use Octoshark.with_connection")
+      Thread.current[identifier] || raise(Octoshark::Error::NoCurrentConnection, "No current connection, use Octoshark.with_connection")
     end
 
     def current_connection?
-      !Thread.current[OCTOSHARK].nil?
+      !Thread.current[identifier].nil?
     end
 
     def current_or_default_connection
-      Thread.current[OCTOSHARK] || @default_pool.connection
+      Thread.current[identifier] || @default_pool.connection
     end
 
     def with_connection(name, &block)
@@ -43,7 +43,7 @@ module Octoshark
     end
 
     def find_connection_pool(name)
-      @connection_pools[name] || raise(NoConnectionError, "No such database connection '#{name}'")
+      @connection_pools[name] || raise(Octoshark::Error::NoConnection, "No such database connection '#{name}'")
     end
 
     def disconnect!
@@ -62,14 +62,18 @@ module Octoshark
     end
 
     def change_connection_reference(connection)
-      previous_connection = Thread.current[OCTOSHARK]
-      Thread.current[OCTOSHARK] = connection
+      previous_connection = Thread.current[identifier]
+      Thread.current[identifier] = connection
 
       begin
         yield
       ensure
-        Thread.current[OCTOSHARK] = previous_connection
+        Thread.current[identifier] = previous_connection
       end
+    end
+
+    def identifier
+      "octoshark_#{Process.pid}"
     end
   end
 end

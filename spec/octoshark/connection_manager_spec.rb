@@ -1,16 +1,16 @@
 require 'spec_helper'
 
-describe Octoshark::ConnectionSwitcher do
+describe Octoshark::ConnectionManager do
   describe "#initialize" do
     it "initializes connection switcher with default connection" do
-      switcher = Octoshark::ConnectionSwitcher.new
+      switcher = Octoshark::ConnectionManager.new
 
       expect(switcher.connection_pools.length).to eq(1)
       expect(switcher.connection_pools[:default]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
     end
 
     it "initializes connection switcher with custom connections" do
-      switcher = Octoshark::ConnectionSwitcher.new(configs)
+      switcher = Octoshark::ConnectionManager.new(configs)
 
       expect(switcher.connection_pools.length).to eq(3)
       expect(switcher.connection_pools[:default]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
@@ -19,7 +19,7 @@ describe Octoshark::ConnectionSwitcher do
 
     it "accepts configs with string keys" do
       configs = { 'db1' => { 'adapter' => "sqlite3", 'database' => "tmp/db1.sqlite" } }
-      switcher = Octoshark::ConnectionSwitcher.new(configs)
+      switcher = Octoshark::ConnectionManager.new(configs)
 
       expect { switcher.connection_pools[:db1].connection }.not_to raise_error
     end
@@ -27,29 +27,29 @@ describe Octoshark::ConnectionSwitcher do
 
   describe "#current_connection" do
     it "returns last used connection as current one" do
-      switcher = Octoshark::ConnectionSwitcher.new(configs)
+      switcher = Octoshark::ConnectionManager.new(configs)
       switcher.with_connection(:db1) do |connection|
         expect(switcher.current_connection).to eq(connection)
       end
     end
 
     it "raises error when no current connection" do
-      switcher = Octoshark::ConnectionSwitcher.new
+      switcher = Octoshark::ConnectionManager.new
 
-      expect { switcher.current_connection }.to raise_error(Octoshark::NoCurrentConnectionError)
+      expect { switcher.current_connection }.to raise_error(Octoshark::Error::NoCurrentConnection)
     end
   end
 
   describe "#current_connection?" do
     it "returns true if current one" do
-      switcher = Octoshark::ConnectionSwitcher.new(configs)
+      switcher = Octoshark::ConnectionManager.new(configs)
       switcher.with_connection(:db1) do
         expect(switcher.current_connection?).to be_truthy
       end
     end
 
     it "returns false if no current one" do
-      switcher = Octoshark::ConnectionSwitcher.new
+      switcher = Octoshark::ConnectionManager.new
 
       expect(switcher.current_connection?).to be_falsey
     end
@@ -57,14 +57,14 @@ describe Octoshark::ConnectionSwitcher do
 
   describe "#current_or_default_connection" do
     it "returns current connection" do
-      switcher = Octoshark::ConnectionSwitcher.new(configs)
+      switcher = Octoshark::ConnectionManager.new(configs)
       switcher.with_connection(:db1) do |db1|
         expect(switcher.current_or_default_connection).to eq(db1)
       end
     end
 
     it "returns default connection when no current connection" do
-      switcher = Octoshark::ConnectionSwitcher.new
+      switcher = Octoshark::ConnectionManager.new
       default = switcher.find_connection_pool(:default).connection
 
       expect(switcher.current_or_default_connection).to eq(default)
@@ -73,19 +73,19 @@ describe Octoshark::ConnectionSwitcher do
 
   describe '#find_connection_pool' do
     it "can find connection pool by name" do
-      switcher = Octoshark::ConnectionSwitcher.new(configs)
+      switcher = Octoshark::ConnectionManager.new(configs)
       expect(switcher.find_connection_pool(:db1)).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
     end
 
-    it "raises Octoshark::NoConnectionError when no pool with that name" do
-      switcher = Octoshark::ConnectionSwitcher.new({})
-      expect { switcher.find_connection_pool(:invalid) }.to raise_error(Octoshark::NoConnectionError)
+    it "raises Octoshark::Error::NoConnection when no pool with that name" do
+      switcher = Octoshark::ConnectionManager.new({})
+      expect { switcher.find_connection_pool(:invalid) }.to raise_error(Octoshark::Error::NoConnection)
     end
   end
 
   describe '#with_connection' do
     it "can select default connection" do
-      switcher = Octoshark::ConnectionSwitcher.new({})
+      switcher = Octoshark::ConnectionManager.new({})
 
       switcher.with_connection(:default) do
         expect(db(switcher.current_connection)).to eq("default")
@@ -93,7 +93,7 @@ describe Octoshark::ConnectionSwitcher do
     end
 
     it "can use multiple connections" do
-      switcher = Octoshark::ConnectionSwitcher.new(configs)
+      switcher = Octoshark::ConnectionManager.new(configs)
 
       switcher.with_connection(:default) do
         expect(db(switcher.current_connection)).to eq("default")
@@ -109,7 +109,7 @@ describe Octoshark::ConnectionSwitcher do
     end
 
     it "can nest connection" do
-      switcher = Octoshark::ConnectionSwitcher.new(configs)
+      switcher = Octoshark::ConnectionManager.new(configs)
 
       switcher.with_connection(:db1) do
         expect(db(switcher.current_connection)).to eq("db1")
@@ -123,27 +123,27 @@ describe Octoshark::ConnectionSwitcher do
     end
 
     it "returns value from execution" do
-      switcher = Octoshark::ConnectionSwitcher.new({})
+      switcher = Octoshark::ConnectionManager.new({})
       result = switcher.with_connection(:default) { |connection| connection.execute("SELECT 1") }
       expect(result).to eq([{"1"=>1, 0=>1}])
     end
 
-    it "raises Octoshark::NoConnectionError" do
-      switcher = Octoshark::ConnectionSwitcher.new({})
+    it "raises Octoshark::Error::NoConnection" do
+      switcher = Octoshark::ConnectionManager.new({})
 
-      expect { switcher.with_connection(:invalid) }.to raise_error(Octoshark::NoConnectionError)
+      expect { switcher.with_connection(:invalid) }.to raise_error(Octoshark::Error::NoConnection)
     end
   end
 
   describe '#without_connection' do
     it "can reset current connection temporarily inside nested connection block" do
-      switcher = Octoshark::ConnectionSwitcher.new({})
+      switcher = Octoshark::ConnectionManager.new({})
 
       switcher.with_connection(:default) do
         expect(db(switcher.current_connection)).to eq("default")
 
         switcher.without_connection do
-          expect { switcher.current_connection }.to raise_error(Octoshark::NoCurrentConnectionError)
+          expect { switcher.current_connection }.to raise_error(Octoshark::Error::NoCurrentConnection)
         end
 
         expect(db(switcher.current_connection)).to eq("default")
@@ -153,7 +153,7 @@ describe Octoshark::ConnectionSwitcher do
 
   describe "#disconnect!" do
     it "removes all connections from connection pools" do
-      switcher = Octoshark::ConnectionSwitcher.new({})
+      switcher = Octoshark::ConnectionManager.new({})
 
       switcher.with_connection(:default) { |connection| connection.execute("SELECT 1") }
       expect(switcher.find_connection_pool(:default)).to be_connected
