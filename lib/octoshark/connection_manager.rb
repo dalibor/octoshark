@@ -5,18 +5,18 @@ module Octoshark
 
     def initialize(configs = {})
       @configs = configs.with_indifferent_access
-      configure
+      setup_connection_pools
 
       Octoshark.connection_managers << self
     end
 
     def reconnect!
       disconnect!
-      configure
+      setup_connection_pools
     end
 
     def current_connection
-      Thread.current[identifier] || raise(Octoshark::Error::NoCurrentConnection, "No current connection, use Octoshark.with_connection")
+      Thread.current[identifier] || raise(Octoshark::Error::NoCurrentConnection, "No current connection")
     end
 
     def current_connection?
@@ -24,7 +24,7 @@ module Octoshark
     end
 
     def current_or_default_connection
-      Thread.current[identifier] || @default_pool.connection
+      Thread.current[identifier] || ActiveRecord::Base.connection_pool.connection
     end
 
     def with_connection(name, &block)
@@ -77,9 +77,8 @@ module Octoshark
       end
     end
 
-    def configure
-      @default_pool     = ActiveRecord::Base.connection_pool
-      @connection_pools = { default: @default_pool }.with_indifferent_access
+    def setup_connection_pools
+      @connection_pools = HashWithIndifferentAccess.new
 
       @configs.each_pair do |name, config|
         spec = spec_class.new(config, "#{config[:adapter]}_connection")

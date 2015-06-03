@@ -14,10 +14,8 @@ module Helpers
       split('.').first
   end
 
-  def check_connections_clean_up
-    manager = Octoshark::ConnectionManager.new({})
-
-    manager.with_connection(:default) { |connection| connection.execute("SELECT 1") }
+  def check_connections_clean_up(manager, connection_name)
+    manager.with_connection(connection_name) { |connection| connection.execute("SELECT 1") }
     expect(manager.connection_pools.map { |_, c| c.connections.count }.sum).to eq(1)
 
     yield

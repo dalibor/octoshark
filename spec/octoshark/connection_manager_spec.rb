@@ -5,16 +5,16 @@ describe Octoshark::ConnectionManager do
     it "initializes connection manager with default connection" do
       manager = Octoshark::ConnectionManager.new
 
-      expect(manager.connection_pools.length).to eq(1)
-      expect(manager.connection_pools[:default]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
+      expect(manager.connection_pools.length).to eq(0)
+      expect(manager.connection_pools[:default]).to be_nil
     end
 
     it "initializes connection manager with custom connections" do
       manager = Octoshark::ConnectionManager.new(configs)
 
-      expect(manager.connection_pools.length).to eq(3)
-      expect(manager.connection_pools[:default]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
+      expect(manager.connection_pools.length).to eq(2)
       expect(manager.connection_pools[:db1]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
+      expect(manager.connection_pools[:db2]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
     end
 
     it "accepts configs with string keys" do
@@ -65,9 +65,8 @@ describe Octoshark::ConnectionManager do
 
     it "returns default connection when no current connection" do
       manager = Octoshark::ConnectionManager.new
-      default = manager.find_connection_pool(:default).connection
 
-      expect(manager.current_or_default_connection).to eq(default)
+      expect(manager.current_or_default_connection).to eq(ActiveRecord::Base.connection_pool.connection)
     end
   end
 
@@ -84,20 +83,8 @@ describe Octoshark::ConnectionManager do
   end
 
   describe '#with_connection' do
-    it "can select default connection" do
-      manager = Octoshark::ConnectionManager.new({})
-
-      manager.with_connection(:default) do
-        expect(db(manager.current_connection)).to eq("default")
-      end
-    end
-
     it "can use multiple connections" do
       manager = Octoshark::ConnectionManager.new(configs)
-
-      manager.with_connection(:default) do
-        expect(db(manager.current_connection)).to eq("default")
-      end
 
       manager.with_connection(:db1) do
         expect(db(manager.current_connection)).to eq("db1")
@@ -123,8 +110,8 @@ describe Octoshark::ConnectionManager do
     end
 
     it "returns value from execution" do
-      manager = Octoshark::ConnectionManager.new({})
-      result = manager.with_connection(:default) { |connection| connection.execute("SELECT 1") }
+      manager = Octoshark::ConnectionManager.new(configs)
+      result = manager.with_connection(:db1) { |connection| connection.execute("SELECT 1") }
       expect(result).to eq([{"1"=>1, 0=>1}])
     end
 
@@ -137,30 +124,30 @@ describe Octoshark::ConnectionManager do
 
   describe '#without_connection' do
     it "can reset current connection temporarily inside nested connection block" do
-      manager = Octoshark::ConnectionManager.new({})
+      manager = Octoshark::ConnectionManager.new(configs)
 
-      manager.with_connection(:default) do
-        expect(db(manager.current_connection)).to eq("default")
+      manager.with_connection(:db1) do
+        expect(db(manager.current_connection)).to eq("db1")
 
         manager.without_connection do
           expect { manager.current_connection }.to raise_error(Octoshark::Error::NoCurrentConnection)
         end
 
-        expect(db(manager.current_connection)).to eq("default")
+        expect(db(manager.current_connection)).to eq("db1")
       end
     end
   end
 
   describe "#disconnect!" do
     it "removes all connections from connection pools" do
-      manager = Octoshark::ConnectionManager.new({})
+      manager = Octoshark::ConnectionManager.new(configs)
 
-      manager.with_connection(:default) { |connection| connection.execute("SELECT 1") }
-      expect(manager.find_connection_pool(:default)).to be_connected
+      manager.with_connection(:db1) { |connection| connection.execute("SELECT 1") }
+      expect(manager.find_connection_pool(:db1)).to be_connected
 
       manager.disconnect!
 
-      expect(manager.find_connection_pool(:default)).to_not be_connected
+      expect(manager.find_connection_pool(:db1)).to_not be_connected
     end
   end
 end

@@ -4,7 +4,7 @@ describe Octoshark do
 
   describe ".reconnect!" do
     it "reconnects connection managers" do
-      manager = Octoshark::ConnectionManager.new({})
+      manager = Octoshark::ConnectionManager.new(configs)
       old_pools = manager.connection_pools.map(&:object_id)
 
       Octoshark.reconnect!
@@ -16,7 +16,7 @@ describe Octoshark do
 
   describe ".reset!" do
     it "removes connection managers" do
-      manager = Octoshark::ConnectionManager.new({})
+      manager = Octoshark::ConnectionManager.new(configs)
 
       Octoshark.reset!
 
@@ -24,7 +24,9 @@ describe Octoshark do
     end
 
     it "cleans old connections" do
-      check_connections_clean_up { Octoshark.reset! }
+      manager = Octoshark::ConnectionManager.new(configs)
+
+      check_connections_clean_up(manager, :db1) { Octoshark.reset! }
     end
   end
 end
