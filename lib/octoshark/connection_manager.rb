@@ -4,14 +4,15 @@ module Octoshark
     attr_reader :connection_pools
 
     def initialize(configs = {})
-      configs           = configs.with_indifferent_access
-      @default_pool     = ActiveRecord::Base.connection_pool
-      @connection_pools = { default: @default_pool }.with_indifferent_access
+      @configs = configs.with_indifferent_access
+      configure
 
-      configs.each_pair do |name, config|
-        spec = spec_class.new(config, "#{config[:adapter]}_connection")
-        @connection_pools[name] = ActiveRecord::ConnectionAdapters::ConnectionPool.new(spec)
-      end
+      Octoshark.connection_managers << self
+    end
+
+    def reconnect!
+      disconnect!
+      configure
     end
 
     def current_connection
@@ -52,6 +53,10 @@ module Octoshark
       end
     end
 
+    def identifier
+      "octoshark_#{Process.pid}"
+    end
+
     private
     def spec_class
       if defined?(ActiveRecord::ConnectionAdapters::ConnectionSpecification)
@@ -72,8 +77,14 @@ module Octoshark
       end
     end
 
-    def identifier
-      "octoshark_#{Process.pid}"
+    def configure
+      @default_pool     = ActiveRecord::Base.connection_pool
+      @connection_pools = { default: @default_pool }.with_indifferent_access
+
+      @configs.each_pair do |name, config|
+        spec = spec_class.new(config, "#{config[:adapter]}_connection")
+        @connection_pools[name] = ActiveRecord::ConnectionAdapters::ConnectionPool.new(spec)
+      end
     end
   end
 end

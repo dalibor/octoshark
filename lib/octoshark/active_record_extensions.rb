@@ -9,9 +9,13 @@ module Octoshark
     end
 
     module ClassMethods
+      # When a connection is established in an ancestor process that must have
+      # subsequently forked, ActiveRecord establishes a new connection because
+      # it can't reuse the existing one. When that happens, we need to reconnect
+      # Octoshark connection managers.
       def establish_connection_with_octoshark(*args)
         establish_connection_without_octoshark(*args)
-        Octoshark.reload! if Octoshark.configured?
+        Octoshark.reconnect!
       end
     end
   end
