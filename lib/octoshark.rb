@@ -14,11 +14,11 @@ module Octoshark
     @@connection_managers
   end
 
-  def self.reconnect!
-    connection_managers.map(&:reconnect!)
+  def self.reset_connection_managers!
+    connection_managers.map(&:reset!)
   end
 
-  def self.reset!
+  def self.disconnect!
     connection_managers.map(&:disconnect!)
     @@connection_managers = []
   end

@@ -150,4 +150,20 @@ describe Octoshark::ConnectionManager do
       expect(manager.find_connection_pool(:db1)).to_not be_connected
     end
   end
+
+  describe ".reset!" do
+    it "gets new connection pools ready to rock" do
+      manager = Octoshark::ConnectionManager.new(configs)
+
+      manager.with_connection(:db1) { |connection| connection.execute("SELECT 1") }
+      expect(manager.connection_pools[:db1].connections.count).to eq(1)
+
+      manager.reset!
+
+      expect(manager.connection_pools[:db1].connections.count).to eq(0)
+
+      manager.with_connection(:db1) { |connection| connection.execute("SELECT 1") }
+      expect(manager.connection_pools[:db1].connections.count).to eq(1)
+    end
+  end
 end

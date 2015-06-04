@@ -2,23 +2,23 @@ require 'spec_helper'
 
 describe Octoshark do
 
-  describe ".reconnect!" do
-    it "reconnects connection managers" do
+  describe ".reset_connection_managers!" do
+    it "resets connection managers" do
       manager = Octoshark::ConnectionManager.new(configs)
       old_pools = manager.connection_pools.map(&:object_id)
 
-      Octoshark.reconnect!
+      Octoshark.reset_connection_managers!
 
       new_pools = manager.connection_pools.map(&:object_id)
       expect(new_pools).to_not eq(old_pools)
     end
   end
 
-  describe ".reset!" do
-    it "removes connection managers" do
+  describe ".disconnect!" do
+    it "disconnects connection managers" do
       manager = Octoshark::ConnectionManager.new(configs)
 
-      Octoshark.reset!
+      Octoshark.disconnect!
 
       expect(Octoshark.connection_managers).to be_blank
     end
@@ -26,7 +26,15 @@ describe Octoshark do
     it "cleans old connections" do
       manager = Octoshark::ConnectionManager.new(configs)
 
-      check_connections_clean_up(manager, :db1) { Octoshark.reset! }
+      manager.with_connection(:db1) { |connection| connection.execute("SELECT 1") }
+      manager.with_connection(:db2) { |connection| connection.execute("SELECT 1") }
+      expect(manager.connection_pools[:db1].connections.count).to eq(1)
+      expect(manager.connection_pools[:db2].connections.count).to eq(1)
+
+      Octoshark.disconnect!
+
+      expect(manager.connection_pools[:db1].connections.count).to eq(0)
+      expect(manager.connection_pools[:db2].connections.count).to eq(0)
     end
   end
 end

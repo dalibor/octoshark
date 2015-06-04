@@ -15,7 +15,7 @@ module Octoshark
       # Octoshark connection managers.
       def establish_connection_with_octoshark(*args)
         establish_connection_without_octoshark(*args)
-        Octoshark.reconnect!
+        Octoshark.reset_connection_managers!
       end
     end
   end

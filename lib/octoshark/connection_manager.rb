@@ -10,7 +10,7 @@ module Octoshark
       Octoshark.connection_managers << self
     end
 
-    def reconnect!
+    def reset!
       disconnect!
       setup_connection_pools
     end
