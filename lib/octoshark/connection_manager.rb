@@ -61,7 +61,7 @@ module Octoshark
     end
 
     def identifier
-      "octoshark_#{Process.pid}"
+      @identifier ||= "octoshark_#{Process.pid}"
     end
 
     private
