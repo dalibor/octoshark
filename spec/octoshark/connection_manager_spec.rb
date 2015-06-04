@@ -122,6 +122,48 @@ describe Octoshark::ConnectionManager do
     end
   end
 
+  describe "#with_new_connection" do
+    it "creates temporary connection" do
+      manager = Octoshark::ConnectionManager.new
+      result = manager.with_new_connection(:db1, configs[:db1]) { |connection| connection.execute("SELECT 1") }
+
+      expect(manager.connection_pools).to be_blank
+    end
+
+    it "returns query results with temporary connection" do
+      manager = Octoshark::ConnectionManager.new
+      result = manager.with_new_connection(:db1, configs[:db1]) { |connection| connection.execute("SELECT 1") }
+
+      expect(result).to eq([{"1"=>1, 0=>1}])
+    end
+
+    it "creates persistent connection" do
+      connection_id = nil
+      manager = Octoshark::ConnectionManager.new
+      expect(manager.connection_pools.length).to eq(0)
+
+      manager.with_new_connection(:db1, configs[:db1], reusable: true) do |connection|
+        connection_id = connection.object_id
+      end
+      expect(manager.connection_pools.length).to eq(1)
+
+      manager.with_new_connection(:db1, configs[:db1], reusable: true) do |connection|
+        expect(connection.object_id).to eq(connection_id)
+      end
+      expect(manager.connection_pools.length).to eq(1)
+    end
+
+    it "returns query results with persistent connection" do
+      manager = Octoshark::ConnectionManager.new
+
+      result = manager.with_new_connection(:db1, configs[:db1], reusable: true) { |connection| connection.execute("SELECT 1") }
+      expect(result).to eq([{"1"=>1, 0=>1}])
+
+      result = manager.with_new_connection(:db1, configs[:db1], reusable: true) { |connection| connection.execute("SELECT 1") }
+      expect(result).to eq([{"1"=>1, 0=>1}])
+    end
+  end
+
   describe '#without_connection' do
     it "can reset current connection temporarily inside nested connection block" do
       manager = Octoshark::ConnectionManager.new(configs)

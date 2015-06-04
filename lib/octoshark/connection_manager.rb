@@ -28,11 +28,18 @@ module Octoshark
     end
 
     def with_connection(name, &block)
-      find_connection_pool(name).with_connection do |connection|
-        connection.connection_name = name
+      connection_pool = find_connection_pool(name)
+      with_connection_pool(name, connection_pool, &block)
+    end
 
-        change_connection_reference(connection) do
-          yield(connection)
+    def with_new_connection(name, config, reusable: false, &block)
+      if reusable
+        connection_pool = @connection_pools[name] ||= create_connection_pool(config)
+        with_connection_pool(name, connection_pool, &block)
+      else
+        connection_pool = create_connection_pool(config)
+        with_connection_pool(name, connection_pool, &block).tap do
+          connection_pool.disconnect!
         end
       end
     end
@@ -66,7 +73,7 @@ module Octoshark
       end
     end
 
-    def change_connection_reference(connection)
+    def change_connection_reference(connection, &block)
       previous_connection = Thread.current[identifier]
       Thread.current[identifier] = connection
 
@@ -81,8 +88,22 @@ module Octoshark
       @connection_pools = HashWithIndifferentAccess.new
 
       @configs.each_pair do |name, config|
-        spec = spec_class.new(config, "#{config[:adapter]}_connection")
-        @connection_pools[name] = ActiveRecord::ConnectionAdapters::ConnectionPool.new(spec)
+        @connection_pools[name] = create_connection_pool(config)
+      end
+    end
+
+    def create_connection_pool(config)
+      spec = spec_class.new(config, "#{config[:adapter]}_connection")
+      ActiveRecord::ConnectionAdapters::ConnectionPool.new(spec)
+    end
+
+    def with_connection_pool(name, connection_pool, &block)
+      connection_pool.with_connection do |connection|
+        connection.connection_name = name
+
+        change_connection_reference(connection) do
+          yield(connection)
+        end
       end
     end
   end
