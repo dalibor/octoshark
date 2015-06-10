@@ -2,92 +2,39 @@ require 'spec_helper'
 
 describe Octoshark do
 
-  describe ".configure" do
-    it "creates connection switcher" do
-      Octoshark.configure({})
+  describe ".reset_connection_managers!" do
+    it "resets connection managers" do
+      manager = Octoshark::ConnectionManager.new(configs)
+      old_pools = manager.connection_pools.map(&:object_id)
 
-      expect(Octoshark.switcher).to_not be_nil
+      Octoshark.reset_connection_managers!
+
+      new_pools = manager.connection_pools.map(&:object_id)
+      expect(new_pools).to_not eq(old_pools)
     end
   end
 
-  describe ".reset!" do
-    it "removes connection switcher" do
-      Octoshark.configure({})
-      Octoshark.reset!
+  describe ".disconnect!" do
+    it "disconnects connection managers" do
+      manager = Octoshark::ConnectionManager.new(configs)
 
-      expect { Octoshark.switcher }.to raise_error(Octoshark::NotConfiguredError)
-    end
+      Octoshark.disconnect!
 
-    it "cleans octoshark thread key" do
-      Octoshark.configure({})
-      Octoshark.reset!
-
-      expect(Thread.current[Octoshark::OCTOSHARK]).to be_nil
+      expect(Octoshark.connection_managers).to be_blank
     end
 
     it "cleans old connections" do
-      check_connections_clean_up { Octoshark.reset! }
-    end
-  end
+      manager = Octoshark::ConnectionManager.new(configs)
 
-  describe ".reload!" do
-    it "replaces connection switcher" do
-      Octoshark.configure({})
-      switcher = Octoshark.switcher
+      manager.with_connection(:db1) { |connection| connection.execute("SELECT 1") }
+      manager.with_connection(:db2) { |connection| connection.execute("SELECT 1") }
+      expect(manager.connection_pools[:db1].connections.count).to eq(1)
+      expect(manager.connection_pools[:db2].connections.count).to eq(1)
 
-      Octoshark.reload!
+      Octoshark.disconnect!
 
-      expect(Octoshark.switcher).to_not be_nil
-      expect(Octoshark.switcher).to_not eq(switcher)
-    end
-
-    it "clears old switcher connections" do
-      check_connections_clean_up { Octoshark.reload! }
-    end
-  end
-
-  describe ".configured?" do
-    it "is not configured by default" do
-      expect(Octoshark.configured?).to be_falsey
-    end
-
-    it "is configured is switcher is configured" do
-      Octoshark.configure({})
-
-      expect(Octoshark.configured?).to be_truthy
-    end
-  end
-
-  describe ".switcher" do
-    it "returns connection switcher" do
-      Octoshark.configure({})
-
-      expect(Octoshark.switcher).to be_an_instance_of(Octoshark::ConnectionSwitcher)
-    end
-
-    it "raises 'NotConfiguredError' error if not configured" do
-      expect { Octoshark.switcher }.to raise_error(Octoshark::NotConfiguredError)
-    end
-  end
-
-  [
-    :connection_pools,
-    :current_connection,
-    :current_connection?,
-    :current_or_default_connection,
-    :disconnect!,
-    :find_connection_pool,
-    :with_connection,
-    :without_connection,
-  ].each do |method_name|
-    describe ".#{method_name}" do
-      it "delegates #{method_name} to connection switcher" do
-        Octoshark.configure({})
-        expect(Octoshark.switcher).to respond_to(method_name)
-        expect(Octoshark.switcher).to receive(method_name)
-
-        Octoshark.send(method_name)
-      end
+      expect(manager.connection_pools[:db1].connections.count).to eq(0)
+      expect(manager.connection_pools[:db2].connections.count).to eq(0)
     end
   end
 end

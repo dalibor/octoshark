@@ -17,7 +17,6 @@ RSpec.configure do |config|
 
   config.before :each do
     ActiveRecord::Base.establish_connection({adapter: 'sqlite3', database: 'tmp/default.sqlite'})
-    Octoshark.reset!
   end
 
   config.after :suite do
