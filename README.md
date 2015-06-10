@@ -73,10 +73,10 @@ end
 Multiple `with_connection` blocks can be nested:
 
 ```ruby
-Octoshark.with_connection(:db1) do
+CONN_MANAGER.with_connection(:db1) do
   # run queries on db1
 
-  Octoshark.with_connection(:db2) do
+  CONN_MANAGER.with_connection(:db2) do
     # run queries on db2
   end
 
@@ -84,7 +84,7 @@ Octoshark.with_connection(:db1) do
 end
 ```
 
-`Octoshark.current_connection` returns the active connection while in the `with_connection` block or raises `Octoshark::Error::NoCurrentConnection` otherwise.
+`CONN_MANAGER.current_connection` returns the active connection while in the `with_connection` block or raises `Octoshark::Error::NoCurrentConnection` otherwise.
 
 
 ## Sharding example
@@ -97,7 +97,7 @@ Switch the connection in a controller with an around filter:
 around_filter :select_shard
 
 def select_shard(&block)
-  Octoshark.with_connection(current_user.shard, &block)
+  CONN_MANAGER.with_connection(current_user.shard, &block)
 end
 ```
 
@@ -112,12 +112,12 @@ All models are in master and slave databases. For master models use the default 
 class ActiveRecord::Base
   def self.connection
     # Return the current connection (from with_connection block) or default one
-    Octoshark.current_or_default_connection
+    CONN_MANAGER.current_or_default_connection
   end
 end
 ```
 
-`Octoshark.current_or_default_connection` method returns the current connection while in `with_connection` block or the default ActiveRecord connection when outside.
+`CONN_MANAGER.current_or_default_connection` method returns the current connection while in `with_connection` block or the default ActiveRecord connection when outside.
 
 
 ## Multi-tenant example
@@ -134,11 +134,11 @@ CONN_MANAGER = Octoshark::ConnectionManager.new
 around_filter :select_shard
 
 def select_shard(&block)
-  Octoshark.with_new_connection(name, config, reusable: false, &block)
+  CONN_MANAGER.with_new_connection(name, config, reusable: false, &block)
 end
 ```
 
-`Octoshark.with_new_connection` method creates a temporary connection that will automatically disconnect. If you want to reuse it in subsequent connection switches, set `reusable: true` and it will be added to the connection manager and reused with the next calls. Depends on the use-case and what's preferable. In test environment usually you would want to set it to `reusable` so that database cleaner can clean data with transaction strategy.
+`CONN_MANAGER.with_new_connection` method creates a temporary connection that will automatically disconnect. If you want to reuse it in subsequent connection switches, set `reusable: true` and it will be added to the connection manager and reused with the next calls. Depends on the use-case and what's preferable. In test environment usually you would want to set it to `reusable` so that database cleaner can clean data with transaction strategy.
 
 
 ## Octoshark.reset_connection_managers!
