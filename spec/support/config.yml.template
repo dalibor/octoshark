@@ -1,0 +1,21 @@
+db1:
+  adapter: mysql2
+  encoding: utf8
+  reconnect: false
+  database: octoshark_db1
+  pool: 5
+  username: root
+  password: pass
+  host: localhost
+  port: 3306
+
+db2:
+  adapter: mysql2
+  encoding: utf8
+  reconnect: false
+  database: octoshark_db2
+  pool: 5
+  username: root
+  password: pass
+  host: localhost
+  port: 3306

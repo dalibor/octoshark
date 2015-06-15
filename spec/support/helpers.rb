@@ -1,3 +1,5 @@
+require 'yaml'
+
 module Helpers
 
   def configs
@@ -7,10 +9,16 @@ module Helpers
     }
   end
 
+  def mysql2_configs
+    YAML.load_file('spec/support/config.yml').with_indifferent_access
+  end
+
   def db(connection)
-    connection.execute('PRAGMA database_list').
-      first['file'].
-      split('/').last.
-      split('.').first
+    case connection
+    when ActiveRecord::ConnectionAdapters::SQLite3Adapter
+      connection.execute('PRAGMA database_list').first['file'].split('/').last.split('.').first
+    when ActiveRecord::ConnectionAdapters::Mysql2Adapter
+      connection.instance_variable_get(:@config)[:database]
+    end
   end
 end

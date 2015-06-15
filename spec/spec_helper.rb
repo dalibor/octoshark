@@ -19,6 +19,11 @@ RSpec.configure do |config|
     ActiveRecord::Base.establish_connection({adapter: 'sqlite3', database: 'tmp/default.sqlite'})
   end
 
+  config.before :each, :mysql2 do
+    config = mysql2_configs[:db1].except(:database)
+    ActiveRecord::Base.establish_connection(config)
+  end
+
   config.after :suite do
     FileUtils.rm_rf(TMP)
   end

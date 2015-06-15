@@ -164,6 +164,32 @@ describe Octoshark::ConnectionManager do
     end
   end
 
+  describe "#use_database" do
+    it "can nest connection", mysql2: true do
+      manager = Octoshark::ConnectionManager.new(mysql2_configs)
+
+      db1 = mysql2_configs[:db1]['database']
+      db2 = mysql2_configs[:db2]['database']
+
+      manager.use_database(:db1, db1) do
+        expect(db(manager.current_connection)).to eq(db1)
+
+        manager.use_database(:db2, db2) do
+          expect(db(manager.current_connection)).to eq(db2)
+        end
+
+        expect(db(manager.current_connection)).to eq(db1)
+      end
+    end
+
+    it "returns value from execution", mysql2: true do
+      manager = Octoshark::ConnectionManager.new(mysql2_configs)
+      db1 = mysql2_configs[:db1]['database']
+      result = manager.use_database(:db1, db1) { |connection| connection.execute("SELECT 1") }.to_a
+      expect(result).to eq([[1]])
+    end
+  end
+
   describe '#without_connection' do
     it "can reset current connection temporarily inside nested connection block" do
       manager = Octoshark::ConnectionManager.new(configs)
