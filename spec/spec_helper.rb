@@ -20,7 +20,8 @@ RSpec.configure do |config|
   end
 
   config.before :each, :mysql2 do
-    ActiveRecord::Base.establish_connection(mysql2_configs[:db1])
+    config = mysql2_configs[:db1].except(:database)
+    ActiveRecord::Base.establish_connection(config)
   end
 
   config.after :suite do

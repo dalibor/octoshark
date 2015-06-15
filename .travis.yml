@@ -13,6 +13,7 @@ gemfile:
   - gemfiles/rails4.1.gemfile
   - gemfiles/rails4.2.gemfile
 before_script:
+  - cp spec/support/config.yml.travis spec/support/config.yml
   - bundle exec rake db:create
 script:
   - bundle exec rspec spec
