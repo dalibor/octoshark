@@ -140,6 +140,13 @@ end
 
 `CONN_MANAGER.with_new_connection` method creates a temporary connection that will automatically disconnect. If you want to reuse it in subsequent connection switches, set `reusable: true` and it will be added to the connection manager and reused with the next calls. Depends on the use-case and what's preferable. In test environment usually you would want to set it to `reusable` so that database cleaner can clean data with transaction strategy.
 
+Alternatively, for better performance (only supported on MySQL), database connection can be switched with `use database` statement. Once connection manager is defined with connectino configs to database servers, selecting a database can be done with:
+
+```ruby
+CONN_MANAGER.use_database(:db1, 'database') do
+  # run queries on database server identified by 'db1' using database 'database'
+end
+```
 
 ## Octoshark.reset_connection_managers!
 
