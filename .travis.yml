@@ -6,7 +6,6 @@ notifications:
   email:
     - dalibor.nasevic@gmail.com
 gemfile:
-  - gemfiles/rails3.gemfile
   - gemfiles/rails3.1.gemfile
   - gemfiles/rails3.2.gemfile
   - gemfiles/rails4.gemfile
