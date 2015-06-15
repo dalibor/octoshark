@@ -14,9 +14,11 @@ module Helpers
   end
 
   def db(connection)
-    connection.execute('PRAGMA database_list').
-      first['file'].
-      split('/').last.
-      split('.').first
+    case connection
+    when ActiveRecord::ConnectionAdapters::SQLite3Adapter
+      connection.execute('PRAGMA database_list').first['file'].split('/').last.split('.').first
+    when ActiveRecord::ConnectionAdapters::Mysql2Adapter
+      connection.instance_variable_get(:@config)[:database]
+    end
   end
 end
