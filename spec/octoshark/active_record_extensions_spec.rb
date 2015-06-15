@@ -18,6 +18,23 @@ describe "ActiveRecord Extensions" do
     ActiveRecord::Base.logger = nil
   end
 
+  it "logs current database name", mysql2: true do
+    io = StringIO.new
+    logger = Logger.new(io)
+    database_name = mysql2_configs[:db1][:database]
+
+    ActiveRecord::Base.logger = logger
+
+    manager = Octoshark::ConnectionManager.new(mysql2_configs)
+    manager.use_database(:db1, database_name) do |connection|
+      connection.execute("SELECT 1")
+    end
+
+    expect(io.string).to include("[Octoshark: db1 #{database_name}]")
+
+    ActiveRecord::Base.logger = nil
+  end
+
   it "logs the connection name for the Octoshark connection only" do
     io = StringIO.new
     logger = Logger.new(io)

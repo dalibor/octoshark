@@ -105,6 +105,10 @@ module Octoshark
     def with_connection_pool(name, connection_pool, database_name = nil, &block)
       connection_pool.with_connection do |connection|
         connection.connection_name = name
+        if database_name
+          connection.database_name = database_name
+          connection.execute("use #{database_name}")
+        end
 
         change_connection_reference(connection) do
           yield(connection)

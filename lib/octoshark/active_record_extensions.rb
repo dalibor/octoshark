@@ -23,7 +23,7 @@ module Octoshark
   module ActiveRecordAbstractAdapter
     extend ActiveSupport::Concern
 
-    attr_accessor :connection_name
+    attr_accessor :connection_name, :database_name
 
     included do
       alias_method_chain :log, :octoshark
@@ -31,7 +31,11 @@ module Octoshark
 
     def log_with_octoshark(sql, name = "SQL", *other_args, &block)
       if connection_name
-        name = "[Octoshark: #{connection_name}] #{name}"
+        if database_name
+          name = "[Octoshark: #{connection_name} #{database_name}] #{name}"
+        else
+          name = "[Octoshark: #{connection_name}] #{name}"
+        end
       end
 
       log_without_octoshark(sql, name, *other_args, &block)
