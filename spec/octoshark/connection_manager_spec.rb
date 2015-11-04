@@ -25,6 +25,14 @@ describe Octoshark::ConnectionManager do
     end
   end
 
+  describe "#identifier" do
+    it "has unique identifiers" do
+      manager1 = Octoshark::ConnectionManager.new
+      manager2 = Octoshark::ConnectionManager.new
+      expect(manager1.identifier).to_not eq(manager2.identifier)
+    end
+  end
+
   describe "#current_connection" do
     it "returns last used connection as current one" do
       manager = Octoshark::ConnectionManager.new(configs)
