@@ -5,14 +5,14 @@ describe Octoshark::ConnectionManager do
     it "initializes connection manager with default connection" do
       manager = Octoshark::ConnectionManager.new
 
-      expect(manager.connection_pools.length).to eq(0)
+      expect(manager.connection_pools.size).to eq(0)
       expect(manager.connection_pools[:default]).to be_nil
     end
 
     it "initializes connection manager with custom connections" do
       manager = Octoshark::ConnectionManager.new(configs)
 
-      expect(manager.connection_pools.length).to eq(2)
+      expect(manager.connection_pools.size).to eq(2)
       expect(manager.connection_pools[:db1]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
       expect(manager.connection_pools[:db2]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
     end
@@ -21,7 +21,7 @@ describe Octoshark::ConnectionManager do
       configs = { 'db1' => { 'adapter' => "sqlite3", 'database' => "tmp/db1.sqlite" } }
       manager = Octoshark::ConnectionManager.new(configs)
 
-      expect { manager.connection_pools[:db1].connection }.not_to raise_error
+      expect { manager.connection_pools['db1'].connection }.not_to raise_error
     end
   end
 
@@ -148,17 +148,17 @@ describe Octoshark::ConnectionManager do
     it "creates persistent connection" do
       connection_id = nil
       manager = Octoshark::ConnectionManager.new
-      expect(manager.connection_pools.length).to eq(0)
+      expect(manager.connection_pools.size).to eq(0)
 
       manager.with_new_connection(:db1, configs[:db1], reusable: true) do |connection|
         connection_id = connection.object_id
       end
-      expect(manager.connection_pools.length).to eq(1)
+      expect(manager.connection_pools.size).to eq(1)
 
       manager.with_new_connection(:db1, configs[:db1], reusable: true) do |connection|
         expect(connection.object_id).to eq(connection_id)
       end
-      expect(manager.connection_pools.length).to eq(1)
+      expect(manager.connection_pools.size).to eq(1)
     end
 
     it "returns query results with persistent connection" do
@@ -176,13 +176,13 @@ describe Octoshark::ConnectionManager do
     it "can nest connection", mysql2: true do
       manager = Octoshark::ConnectionManager.new(mysql2_configs)
 
-      db1 = mysql2_configs[:db1]['database']
-      db2 = mysql2_configs[:db2]['database']
+      db1 = mysql2_configs['db1']['database']
+      db2 = mysql2_configs['db2']['database']
 
-      manager.use_database(:db1, db1) do
+      manager.use_database('db1', db1) do
         expect(db(manager.current_connection)).to eq(db1)
 
-        manager.use_database(:db2, db2) do
+        manager.use_database('db2', db2) do
           expect(db(manager.current_connection)).to eq(db2)
         end
 
@@ -192,8 +192,8 @@ describe Octoshark::ConnectionManager do
 
     it "returns value from execution", mysql2: true do
       manager = Octoshark::ConnectionManager.new(mysql2_configs)
-      db1 = mysql2_configs[:db1]['database']
-      result = manager.use_database(:db1, db1) { |connection| connection.execute("SELECT 1") }.to_a
+      db1 = mysql2_configs['db1']['database']
+      result = manager.use_database('db1', db1) { |connection| connection.execute("SELECT 1") }.to_a
       expect(result).to eq([[1]])
     end
   end

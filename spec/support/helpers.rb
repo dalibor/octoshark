@@ -10,7 +10,7 @@ module Helpers
   end
 
   def mysql2_configs
-    YAML.load_file('spec/support/config.yml').with_indifferent_access
+    YAML.load_file('spec/support/config.yml')
   end
 
   def db(connection)

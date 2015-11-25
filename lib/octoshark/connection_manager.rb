@@ -4,7 +4,8 @@ module Octoshark
     attr_reader :connection_pools
 
     def initialize(configs = {})
-      @configs = configs.with_indifferent_access
+      @configs = configs
+      @connection_pools = ThreadSafe::Cache.new
       setup_connection_pools
 
       Octoshark.connection_managers << self
@@ -34,7 +35,7 @@ module Octoshark
 
     def with_new_connection(name, config, reusable: false, &block)
       if reusable
-        connection_pool = @connection_pools[name] ||= create_connection_pool(config)
+        connection_pool = @connection_pools.fetch_or_store(name) { create_connection_pool(config) }
         with_connection_pool(name, connection_pool, &block)
       else
         connection_pool = create_connection_pool(config)
@@ -90,7 +91,7 @@ module Octoshark
     end
 
     def setup_connection_pools
-      @connection_pools = HashWithIndifferentAccess.new
+      @connection_pools = ThreadSafe::Cache.new
 
       @configs.each_pair do |name, config|
         @connection_pools[name] = create_connection_pool(config)
@@ -98,6 +99,7 @@ module Octoshark
     end
 
     def create_connection_pool(config)
+      config = config.with_indifferent_access
       spec = spec_class.new(config, "#{config[:adapter]}_connection")
       ActiveRecord::ConnectionAdapters::ConnectionPool.new(spec)
     end
