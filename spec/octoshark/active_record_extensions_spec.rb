@@ -26,7 +26,7 @@ describe "ActiveRecord Extensions" do
     ActiveRecord::Base.logger = logger
 
     manager = Octoshark::ConnectionManager.new(mysql2_configs)
-    manager.use_database(:db1, database_name) do |connection|
+    manager.with_connection(:db1, database_name) do |connection|
       connection.execute("SELECT 1")
     end
 

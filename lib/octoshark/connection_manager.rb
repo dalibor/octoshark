@@ -27,9 +27,9 @@ module Octoshark
       Thread.current[identifier] || ActiveRecord::Base.connection_pool.connection
     end
 
-    def with_connection(name, &block)
+    def with_connection(name, database_name = nil, &block)
       connection_pool = find_connection_pool(name)
-      with_connection_pool(name, connection_pool, &block)
+      with_connection_pool(name, connection_pool, database_name: database_name, &block)
     end
 
     def with_new_connection(name, config, reusable: false, &block)
@@ -40,11 +40,6 @@ module Octoshark
         connection_pool = create_connection_pool(config)
         with_connection_pool(name, connection_pool, disconnect: true, &block)
       end
-    end
-
-    def use_database(name, database_name, &block)
-      connection_pool = find_connection_pool(name)
-      with_connection_pool(name, connection_pool, database_name: database_name, &block)
     end
 
     def without_connection(&block)

@@ -143,7 +143,7 @@ end
 Alternatively, for better performance (only supported on MySQL), database connection can be switched with `use database` statement. Once connection manager is defined with connectino configs to database servers, selecting a database can be done with:
 
 ```ruby
-CONN_MANAGER.use_database(:db1, 'database') do
+CONN_MANAGER.with_connection(:db1, 'database_name') do
   # run queries on database server identified by 'db1' using database 'database'
 end
 ```
