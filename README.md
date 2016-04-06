@@ -193,6 +193,29 @@ end
 Thanks to [@saschamt](https://github.com/saschamt) for Octoshark logo design. :)
 
 
+## Development Setup
+
+Setup database config and create databases:
+
+```bash
+cp spec/support/config.yml.template spec/support/config.yml
+rake db:create
+```
+
+Run specs:
+
+```bash
+bundle exec rspec spec
+```
+
+Install different active record versions defined in `Appraisals` and run specs for all of them:
+
+```bash
+bundle exec appraisal
+bundle exec appraisal rspec spec
+```
+
+
 ## Contributing
 
 1. Fork it ( http://github.com/dalibor/octoshark/fork )
