@@ -38,15 +38,13 @@ module Octoshark
         with_connection_pool(name, connection_pool, &block)
       else
         connection_pool = create_connection_pool(config)
-        with_connection_pool(name, connection_pool, &block).tap do
-          connection_pool.disconnect!
-        end
+        with_connection_pool(name, connection_pool, disconnect: true, &block)
       end
     end
 
     def use_database(name, database_name, &block)
       connection_pool = find_connection_pool(name)
-      with_connection_pool(name, connection_pool, database_name, &block)
+      with_connection_pool(name, connection_pool, database_name: database_name, &block)
     end
 
     def without_connection(&block)
@@ -102,7 +100,7 @@ module Octoshark
       ActiveRecord::ConnectionAdapters::ConnectionPool.new(spec)
     end
 
-    def with_connection_pool(name, connection_pool, database_name = nil, &block)
+    def with_connection_pool(name, connection_pool, database_name: nil, disconnect: false, &block)
       connection_pool.with_connection do |connection|
         connection.connection_name = name
         if database_name
@@ -111,7 +109,11 @@ module Octoshark
         end
 
         change_connection_reference(connection) do
-          yield(connection)
+          begin
+            yield(connection)
+          ensure
+            connection_pool.disconnect! if disconnect
+          end
         end
       end
     end
