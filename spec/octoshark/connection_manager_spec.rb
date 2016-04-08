@@ -157,9 +157,26 @@ describe Octoshark::ConnectionManager do
   end
 
   describe "#with_new_connection" do
-    it "creates temporary connection" do
+    it "creates temporary connection to database server" do
       manager = Octoshark::ConnectionManager.new
-      result = manager.with_new_connection(:db1, configs[:db1]) { |connection| connection.execute("SELECT 1") }
+      result = manager.with_new_connection(:db1, configs[:db1]) do |connection|
+        connection.execute("SELECT 1")
+        expect(connection.database_name).to be_nil
+      end
+
+      expect(manager.connection_pools).to be_blank
+    end
+
+    it "creates temporary connection to specific database", mysql2: true do
+      manager = Octoshark::ConnectionManager.new
+
+      config = mysql2_configs[:db1]
+      database_name = config['database']
+
+      result = manager.with_new_connection(:db1, config, database_name) do |connection|
+        connection.execute("SELECT 1")
+        expect(connection.database_name).to eq(database_name)
+      end
 
       expect(manager.connection_pools).to be_blank
     end

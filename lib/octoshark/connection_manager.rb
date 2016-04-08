@@ -32,13 +32,13 @@ module Octoshark
       with_connection_pool(name, connection_pool, database_name: database_name, &block)
     end
 
-    def with_new_connection(name, config, reusable: false, &block)
+    def with_new_connection(name, config, database_name = nil, reusable: false, &block)
       if reusable
         connection_pool = @connection_pools[name] ||= create_connection_pool(config)
-        with_connection_pool(name, connection_pool, &block)
+        with_connection_pool(name, connection_pool, database_name: database_name, &block)
       else
         connection_pool = create_connection_pool(config)
-        with_connection_pool(name, connection_pool, disconnect: true, &block)
+        with_connection_pool(name, connection_pool, database_name: database_name, disconnect: true, &block)
       end
     end
 
