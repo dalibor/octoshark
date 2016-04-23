@@ -32,13 +32,20 @@ module Octoshark
       with_connection_pool(name, connection_pool, database_name: database_name, &block)
     end
 
-    def with_new_connection(name, config, database_name = nil, reusable: false, &block)
-      if reusable
-        connection_pool = @connection_pools[name] ||= create_connection_pool(config)
-        with_connection_pool(name, connection_pool, database_name: database_name, &block)
-      else
-        connection_pool = create_connection_pool(config)
-        with_connection_pool(name, connection_pool, database_name: database_name, disconnect: true, &block)
+    def with_new_connection(name, config, database_name = nil, &block)
+      connection_method = "#{config[:adapter]}_connection"
+      config = config.merge(database: database_name) if database_name
+
+      connection = ActiveRecord::Base.send(connection_method, config)
+      connection.connection_name = name
+      connection.database_name = database_name if database_name
+
+      change_connection_reference(connection) do
+        begin
+          yield(connection)
+        ensure
+          connection.disconnect!
+        end
       end
     end
 
@@ -95,20 +102,17 @@ module Octoshark
       ActiveRecord::ConnectionAdapters::ConnectionPool.new(spec)
     end
 
-    def with_connection_pool(name, connection_pool, database_name: nil, disconnect: false, &block)
+    def with_connection_pool(name, connection_pool, database_name: nil, &block)
       connection_pool.with_connection do |connection|
         connection.connection_name = name
+
         if database_name
           connection.database_name = database_name
           connection.execute("use #{database_name}")
         end
 
         change_connection_reference(connection) do
-          begin
-            yield(connection)
-          ensure
-            connection_pool.disconnect! if disconnect
-          end
+          yield(connection)
         end
       end
     end

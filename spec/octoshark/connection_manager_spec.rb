@@ -181,50 +181,10 @@ describe Octoshark::ConnectionManager do
       expect(manager.connection_pools).to be_blank
     end
 
-    it "disconnects the connection pool when code in block raises exception" do
-      # ActiveRecord version 3.1.12 connection does not return back the pool
-      skip if ActiveRecord::VERSION::STRING == "3.1.12"
-
-      manager = Octoshark::ConnectionManager.new(configs)
-      pool = nil
-
-      expect {
-        manager.with_new_connection(:db1, configs[:db1]) { |connection| pool = connection.pool; raise StandardError }
-      }.to raise_error(StandardError)
-
-      expect(pool).to_not be_connected
-    end
-
     it "returns query results with temporary connection" do
       manager = Octoshark::ConnectionManager.new
       result = manager.with_new_connection(:db1, configs[:db1]) { |connection| connection.execute("SELECT 1") }
 
-      expect(result).to eq([{"1"=>1, 0=>1}])
-    end
-
-    it "creates persistent connection" do
-      connection_id = nil
-      manager = Octoshark::ConnectionManager.new
-      expect(manager.connection_pools.length).to eq(0)
-
-      manager.with_new_connection(:db1, configs[:db1], reusable: true) do |connection|
-        connection_id = connection.object_id
-      end
-      expect(manager.connection_pools.length).to eq(1)
-
-      manager.with_new_connection(:db1, configs[:db1], reusable: true) do |connection|
-        expect(connection.object_id).to eq(connection_id)
-      end
-      expect(manager.connection_pools.length).to eq(1)
-    end
-
-    it "returns query results with persistent connection" do
-      manager = Octoshark::ConnectionManager.new
-
-      result = manager.with_new_connection(:db1, configs[:db1], reusable: true) { |connection| connection.execute("SELECT 1") }
-      expect(result).to eq([{"1"=>1, 0=>1}])
-
-      result = manager.with_new_connection(:db1, configs[:db1], reusable: true) { |connection| connection.execute("SELECT 1") }
       expect(result).to eq([{"1"=>1, 0=>1}])
     end
   end
