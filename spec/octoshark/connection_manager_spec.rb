@@ -138,6 +138,20 @@ describe Octoshark::ConnectionManager do
       expect(manager.connection_pools).to be_blank
     end
 
+    it "disconnects the connection pool when code in block raises exception" do
+      # ActiveRecord version 3.1.12 connection does not return back the pool
+      skip if ActiveRecord::VERSION::STRING == "3.1.12"
+
+      manager = Octoshark::ConnectionManager.new(configs)
+      pool = nil
+
+      expect {
+        manager.with_new_connection(:db1, configs[:db1]) { |connection| pool = connection.pool; raise StandardError }
+      }.to raise_error(StandardError)
+
+      expect(pool).to_not be_connected
+    end
+
     it "returns query results with temporary connection" do
       manager = Octoshark::ConnectionManager.new
       result = manager.with_new_connection(:db1, configs[:db1]) { |connection| connection.execute("SELECT 1") }
