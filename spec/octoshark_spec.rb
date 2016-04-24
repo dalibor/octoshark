@@ -5,11 +5,11 @@ describe Octoshark do
   describe ".reset_connection_managers!" do
     it "resets connection managers" do
       manager = Octoshark::ConnectionManager.new(configs)
-      old_pools = manager.connection_pools.map(&:object_id)
+      old_pools = manager.connection_pools.values(&:object_id)
 
       Octoshark.reset_connection_managers!
 
-      new_pools = manager.connection_pools.map(&:object_id)
+      new_pools = manager.connection_pools.values(&:object_id)
       expect(new_pools).to_not eq(old_pools)
     end
   end

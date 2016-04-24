@@ -1,5 +1,6 @@
 require 'octoshark/version'
 require 'active_record'
+require 'thread_safe'
 require 'octoshark/active_record_extensions'
 
 module Octoshark
@@ -8,7 +9,7 @@ module Octoshark
 
   # Octoshark needs to keep track of all connection managers in order to
   # automatically reconnect on connection establish.
-  @@connection_managers = []
+  @@connection_managers = ThreadSafe::Array.new
 
   def self.connection_managers
     @@connection_managers
