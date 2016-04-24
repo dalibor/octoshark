@@ -15,7 +15,7 @@ module Octoshark
       # Octoshark connection managers.
       def establish_connection_with_octoshark(*args)
         establish_connection_without_octoshark(*args)
-        Octoshark.reset_connection_managers!
+        Octoshark::ConnectionPoolsManager.reset_connection_managers!
       end
     end
   end
@@ -30,12 +30,8 @@ module Octoshark
     end
 
     def log_with_octoshark(sql, name = "SQL", *other_args, &block)
-      if connection_name
-        if database_name
-          name = "[Octoshark: #{connection_name} #{database_name}] #{name}"
-        else
-          name = "[Octoshark: #{connection_name}] #{name}"
-        end
+      if connection_name || database_name
+        name = "[Octoshark: #{[connection_name, database_name].compact.join(' ')}] #{name}"
       end
 
       log_without_octoshark(sql, name, *other_args, &block)
