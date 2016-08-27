@@ -9,12 +9,12 @@ module Octoshark
       connection.connection_name = connection_name
       connection.database_name = config[:database] if config[:database]
 
-      change_connection_reference(connection) do
-        begin
+      begin
+        change_connection_reference(connection) do
           yield(connection)
-        ensure
-          connection.disconnect!
         end
+      ensure
+        connection.disconnect!
       end
     end
   end
