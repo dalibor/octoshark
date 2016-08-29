@@ -8,7 +8,7 @@ describe "ActiveRecord Extensions" do
 
     ActiveRecord::Base.logger = logger
 
-    manager = Octoshark::ConnectionManager.new(configs)
+    manager = Octoshark::ConnectionPoolsManager.new(configs)
     manager.with_connection(:db1) do |connection|
       connection.execute("SELECT 1")
     end
@@ -25,8 +25,8 @@ describe "ActiveRecord Extensions" do
 
     ActiveRecord::Base.logger = logger
 
-    manager = Octoshark::ConnectionManager.new(mysql2_configs)
-    manager.use_database(:db1, database_name) do |connection|
+    manager = Octoshark::ConnectionPoolsManager.new(mysql2_configs)
+    manager.with_connection(:db1, database_name) do |connection|
       connection.execute("SELECT 1")
     end
 
@@ -41,7 +41,7 @@ describe "ActiveRecord Extensions" do
 
     ActiveRecord::Base.logger = logger
 
-    manager = Octoshark::ConnectionManager.new(configs)
+    manager = Octoshark::ConnectionPoolsManager.new(configs)
     manager.with_connection(:db1) do |connection|
       ActiveRecord::Base.connection.execute("SELECT 1")
     end

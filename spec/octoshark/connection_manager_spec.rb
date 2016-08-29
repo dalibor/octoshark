@@ -1,259 +1,48 @@
 require 'spec_helper'
 
 describe Octoshark::ConnectionManager do
-  describe "#initialize" do
-    it "initializes connection manager with default connection" do
+  describe "#with_connection", mysql2: true do
+    it "creates temporary connection to database server" do
       manager = Octoshark::ConnectionManager.new
+      connection_reference = nil
 
-      expect(manager.connection_pools.length).to eq(0)
-      expect(manager.connection_pools[:default]).to be_nil
-    end
+      config = mysql2_configs[:db1]
 
-    it "initializes connection manager with custom connections" do
-      manager = Octoshark::ConnectionManager.new(configs)
+      manager.with_connection(config.except(:database)) do |connection|
+        connection_reference = connection
 
-      expect(manager.connection_pools.length).to eq(2)
-      expect(manager.connection_pools[:db1]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
-      expect(manager.connection_pools[:db2]).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
-    end
-
-    it "accepts configs with string keys" do
-      configs = { 'db1' => { 'adapter' => "sqlite3", 'database' => "tmp/db1.sqlite" } }
-      manager = Octoshark::ConnectionManager.new(configs)
-
-      expect { manager.connection_pools[:db1].connection }.not_to raise_error
-    end
-  end
-
-  describe "#identifier" do
-    it "has unique identifiers" do
-      manager1 = Octoshark::ConnectionManager.new
-      manager2 = Octoshark::ConnectionManager.new
-      expect(manager1.identifier).to_not eq(manager2.identifier)
-    end
-  end
-
-  describe "#current_connection" do
-    it "returns last used connection as current one" do
-      manager = Octoshark::ConnectionManager.new(configs)
-      manager.with_connection(:db1) do |connection|
-        expect(manager.current_connection).to eq(connection)
+        connection.execute("SELECT 1")
+        expect(connection.database_name).to be_nil
       end
+
+      expect(connection_reference.active?).to eq(false)
     end
 
-    it "raises error when no current connection" do
+    it "creates temporary connection to specific database", mysql2: true do
       manager = Octoshark::ConnectionManager.new
+      connection_reference = nil
 
-      expect { manager.current_connection }.to raise_error(Octoshark::Error::NoCurrentConnection)
-    end
-  end
+      config = mysql2_configs[:db1]
+      database_name = config.fetch('database')
 
-  describe "#current_connection?" do
-    it "returns true if current one" do
-      manager = Octoshark::ConnectionManager.new(configs)
-      manager.with_connection(:db1) do
-        expect(manager.current_connection?).to be_truthy
-      end
-    end
+      manager.with_connection(config) do |connection|
+        connection_reference = connection
 
-    it "returns false if no current one" do
-      manager = Octoshark::ConnectionManager.new
-
-      expect(manager.current_connection?).to be_falsey
-    end
-  end
-
-  describe "#current_or_default_connection" do
-    it "returns current connection" do
-      manager = Octoshark::ConnectionManager.new(configs)
-      manager.with_connection(:db1) do |db1|
-        expect(manager.current_or_default_connection).to eq(db1)
-      end
-    end
-
-    it "returns default connection when no current connection" do
-      manager = Octoshark::ConnectionManager.new
-
-      expect(manager.current_or_default_connection).to eq(ActiveRecord::Base.connection_pool.connection)
-    end
-  end
-
-  describe '#find_connection_pool' do
-    it "can find connection pool by name" do
-      manager = Octoshark::ConnectionManager.new(configs)
-      expect(manager.find_connection_pool(:db1)).to be_an_instance_of(ActiveRecord::ConnectionAdapters::ConnectionPool)
-    end
-
-    it "raises Octoshark::Error::NoConnection when no pool with that name" do
-      manager = Octoshark::ConnectionManager.new({})
-      expect { manager.find_connection_pool(:invalid) }.to raise_error(Octoshark::Error::NoConnection)
-    end
-  end
-
-  describe '#with_connection' do
-    it "can use multiple connections" do
-      manager = Octoshark::ConnectionManager.new(configs)
-
-      manager.with_connection(:db1) do
-        expect(db(manager.current_connection)).to eq("db1")
+        connection.execute("SELECT 1")
+        expect(connection.database_name).to eq(database_name)
       end
 
-      manager.with_connection(:db2) do
-        expect(db(manager.current_connection)).to eq("db2")
-      end
-    end
-
-    it "can nest connection" do
-      manager = Octoshark::ConnectionManager.new(configs)
-
-      manager.with_connection(:db1) do
-        expect(db(manager.current_connection)).to eq("db1")
-
-        manager.with_connection(:db2) do
-          expect(db(manager.current_connection)).to eq("db2")
-        end
-
-        expect(db(manager.current_connection)).to eq("db1")
-      end
-    end
-
-    it "returns value from execution" do
-      manager = Octoshark::ConnectionManager.new(configs)
-      result = manager.with_connection(:db1) { |connection| connection.execute("SELECT 1") }
-      expect(result).to eq([{"1"=>1, 0=>1}])
-    end
-
-    it "raises Octoshark::Error::NoConnection" do
-      manager = Octoshark::ConnectionManager.new({})
-
-      expect { manager.with_connection(:invalid) }.to raise_error(Octoshark::Error::NoConnection)
-    end
-  end
-
-  describe "#with_new_connection" do
-    it "creates temporary connection" do
-      manager = Octoshark::ConnectionManager.new
-      result = manager.with_new_connection(:db1, configs[:db1]) { |connection| connection.execute("SELECT 1") }
-
-      expect(manager.connection_pools).to be_blank
-    end
-
-    it "disconnects the connection pool when code in block raises exception" do
-      # ActiveRecord version 3.1.12 connection does not return back the pool
-      skip if ActiveRecord::VERSION::STRING == "3.1.12"
-
-      manager = Octoshark::ConnectionManager.new(configs)
-      pool = nil
-
-      expect {
-        manager.with_new_connection(:db1, configs[:db1]) { |connection| pool = connection.pool; raise StandardError }
-      }.to raise_error(StandardError)
-
-      expect(pool).to_not be_connected
+      expect(connection_reference.active?).to eq(false)
     end
 
     it "returns query results with temporary connection" do
       manager = Octoshark::ConnectionManager.new
-      result = manager.with_new_connection(:db1, configs[:db1]) { |connection| connection.execute("SELECT 1") }
+      config = configs[:db1]
+      result = manager.with_connection(config) do |connection|
+        connection.execute("SELECT 1")
+      end
 
       expect(result).to eq([{"1"=>1, 0=>1}])
-    end
-
-    it "creates persistent connection" do
-      connection_id = nil
-      manager = Octoshark::ConnectionManager.new
-      expect(manager.connection_pools.length).to eq(0)
-
-      manager.with_new_connection(:db1, configs[:db1], reusable: true) do |connection|
-        connection_id = connection.object_id
-      end
-      expect(manager.connection_pools.length).to eq(1)
-
-      manager.with_new_connection(:db1, configs[:db1], reusable: true) do |connection|
-        expect(connection.object_id).to eq(connection_id)
-      end
-      expect(manager.connection_pools.length).to eq(1)
-    end
-
-    it "returns query results with persistent connection" do
-      manager = Octoshark::ConnectionManager.new
-
-      result = manager.with_new_connection(:db1, configs[:db1], reusable: true) { |connection| connection.execute("SELECT 1") }
-      expect(result).to eq([{"1"=>1, 0=>1}])
-
-      result = manager.with_new_connection(:db1, configs[:db1], reusable: true) { |connection| connection.execute("SELECT 1") }
-      expect(result).to eq([{"1"=>1, 0=>1}])
-    end
-  end
-
-  describe "#use_database" do
-    it "can nest connection", mysql2: true do
-      manager = Octoshark::ConnectionManager.new(mysql2_configs)
-
-      db1 = mysql2_configs[:db1]['database']
-      db2 = mysql2_configs[:db2]['database']
-
-      manager.use_database(:db1, db1) do
-        expect(db(manager.current_connection)).to eq(db1)
-
-        manager.use_database(:db2, db2) do
-          expect(db(manager.current_connection)).to eq(db2)
-        end
-
-        expect(db(manager.current_connection)).to eq(db1)
-      end
-    end
-
-    it "returns value from execution", mysql2: true do
-      manager = Octoshark::ConnectionManager.new(mysql2_configs)
-      db1 = mysql2_configs[:db1]['database']
-      result = manager.use_database(:db1, db1) { |connection| connection.execute("SELECT 1") }.to_a
-      expect(result).to eq([[1]])
-    end
-  end
-
-  describe '#without_connection' do
-    it "can reset current connection temporarily inside nested connection block" do
-      manager = Octoshark::ConnectionManager.new(configs)
-
-      manager.with_connection(:db1) do
-        expect(db(manager.current_connection)).to eq("db1")
-
-        manager.without_connection do
-          expect { manager.current_connection }.to raise_error(Octoshark::Error::NoCurrentConnection)
-        end
-
-        expect(db(manager.current_connection)).to eq("db1")
-      end
-    end
-  end
-
-  describe "#disconnect!" do
-    it "removes all connections from connection pools" do
-      manager = Octoshark::ConnectionManager.new(configs)
-
-      manager.with_connection(:db1) { |connection| connection.execute("SELECT 1") }
-      expect(manager.find_connection_pool(:db1)).to be_connected
-
-      manager.disconnect!
-
-      expect(manager.find_connection_pool(:db1)).to_not be_connected
-    end
-  end
-
-  describe ".reset!" do
-    it "gets new connection pools ready to rock" do
-      manager = Octoshark::ConnectionManager.new(configs)
-
-      manager.with_connection(:db1) { |connection| connection.execute("SELECT 1") }
-      expect(manager.connection_pools[:db1].connections.count).to eq(1)
-
-      manager.reset!
-
-      expect(manager.connection_pools[:db1].connections.count).to eq(0)
-
-      manager.with_connection(:db1) { |connection| connection.execute("SELECT 1") }
-      expect(manager.connection_pools[:db1].connections.count).to eq(1)
     end
   end
 end
