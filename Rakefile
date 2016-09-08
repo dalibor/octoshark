@@ -10,9 +10,9 @@ task :default => :spec
 
 namespace :db do
   task :establish_connection do
-    configs    = YAML.load_file('spec/support/config.yml').with_indifferent_access
-    config     = configs[:db1].except(:database)
-    @databases = configs.map { |_, config| config[:database] }
+    configs    = YAML.load_file('spec/support/config.yml')
+    config     = configs['db1'].reject { |k, v| k == 'database' }
+    @databases = configs.map { |_, config| config['database'] }
     ActiveRecord::Base.establish_connection(config)
   end
 
