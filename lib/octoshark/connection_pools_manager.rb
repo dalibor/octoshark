@@ -73,12 +73,20 @@ module Octoshark
       @connection_pools = HashWithIndifferentAccess.new
 
       @configs.each_pair do |name, config|
-        @connection_pools[name] = create_connection_pool(config)
+        @connection_pools[name] = create_connection_pool(name, config)
       end
     end
 
-    def create_connection_pool(config)
-      spec = spec_class.new(config, "#{config[:adapter]}_connection")
+    def create_connection_pool(name, config)
+      adapter_method = "#{config[:adapter]}_connection"
+      spec =
+        if spec_class.instance_method(:initialize).arity == 3
+          # Rails 5 ConnectionSpecification accepts spec name as first argument
+          spec_class.new(name, config, adapter_method)
+        else
+          spec_class.new(config, adapter_method)
+        end
+
       ActiveRecord::ConnectionAdapters::ConnectionPool.new(spec)
     end
   end
