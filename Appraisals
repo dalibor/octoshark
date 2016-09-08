@@ -6,7 +6,7 @@ appraise "rails3.2" do
   gem "activerecord", "~> 3.2.0"
 end
 
-appraise "rails4" do
+appraise "rails4.0" do
   gem "activerecord", "~> 4.0.0"
 end
 
@@ -16,4 +16,8 @@ end
 
 appraise "rails4.2" do
   gem "activerecord", "~> 4.2.0"
+end
+
+appraise "rails5.0" do
+  gem "activerecord", "~> 5.0.0"
 end
