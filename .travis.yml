@@ -8,9 +8,10 @@ notifications:
 gemfile:
   - gemfiles/rails3.1.gemfile
   - gemfiles/rails3.2.gemfile
-  - gemfiles/rails4.gemfile
+  - gemfiles/rails4.0.gemfile
   - gemfiles/rails4.1.gemfile
   - gemfiles/rails4.2.gemfile
+  - gemfiles/rails5.0.gemfile
 before_script:
   - cp spec/support/config.yml.travis spec/support/config.yml
   - bundle exec rake db:create
