@@ -1,5 +1,9 @@
 # Change log
 
+## 0.2.1 2016-09-09
+
+- Add support for Rails 5 and Rails 3
+
 ## 0.2.0 2016-08-29
 
 - `Octoshark::ConnectionManager` is split in two managers `Octoshark::ConnectionPoolsManager` for persistent connections and `Octoshark::ConnectionManager` for non-persistent connections.
