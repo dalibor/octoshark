@@ -163,7 +163,7 @@ When using `Octoshark::ConnectionPoolsManager`, whenever ActiveRecord::Base call
 
 ## Cleaning test databases
 
-When using persistent connections, you can use tools like [DatabaseCleaner](https://github.com/DatabaseCleaner/database_cleaner) or [DatabaseRewinder](https://github.com/amatsuda/database_rewinder) to clean test databases. Here's an example of RSpec config for `DatabaseCleaner`:
+For `Octoshark::ConnectionPoolsManager`, we can use [DatabaseCleaner](https://github.com/DatabaseCleaner/database_cleaner) and RSpec like:
 
 ```ruby
 config.before(:suite) do
@@ -177,7 +177,6 @@ config.before(:each) do
 end
 
 config.after(:each) do
-  setup_database_cleaner
   DatabaseCleaner.clean_with(:transaction)
 end
 
@@ -191,49 +190,93 @@ def setup_database_cleaner
 end
 ```
 
-When using non-persistent connections where transaction rollback as a cleaning strategy will not work, we can use a custom solution inspired by `DatabaseRewinder`. It also works with dynamic databases created on the fly in the test suite.
+For `Octoshark::ConnectionManager` where connections and databases are dynamically created and cannot be configured in the test setup, we can write a custom database cleaner inspired by [DatabaseRewinder](https://github.com/amatsuda/database_rewinder). The example below is for a multi-tenant test setup with a main (core) database and a tenant database for the `CURRENT_USER` in the test suite. `CustomDatabaseCleaner.clean_all` cleans all core database tables before test suite and `CustomDatabaseCleaner.clean` cleans used tables in both core and tenant databases after each test.
+
 
 ```ruby
-module DatabaseCleaner
+module CustomDatabaseCleaner
+  INSERT_REGEX = /\AINSERT(?:\s+IGNORE)?\s+INTO\s+(?:\.*[`"]?(?<table>[^.\s`"]+)[`"]?)*/i
+
+  @@tables_with_inserts = []
+
+  class << self
+    def record_inserted_table(connection, sql)
+      match = sql.match(INSERT_REGEX)
+
+      if match && match[:table] && tables_with_inserts.exclude?(match[:table])
+        tables_with_inserts << match[:table]
+      end
+    end
+
+    def clean_all
+      with_core_db_connection do |connection|
+        clean_tables(connection)
+      end
+
+      reset_tables_with_inserts
+    end
+
+    def clean
+      with_core_db_connection do |connection|
+        clean_tables(connection, { 'users' => [CURRENT_USER.id] })
+      end
+
+      CURRENT_USER.with_tenant do |connection|
+        clean_tables(connection)
+      end
+
+      reset_tables_with_inserts
+    end
+
+    private
+    def with_core_db_connection(&block)
+      CoreDBManager.with_connection(ActiveRecord::Base.configurations[Rails.env].symbolize_keys, &block)
+    end
+
+    def clean_tables(connection, keep_data = {})
+      tables_to_clean = connection.tables.reject { |t| t == ActiveRecord::Migrator.schema_migrations_table_name }
+      tables_to_clean = tables_to_clean & tables_with_inserts if tables_with_inserts.present?
+
+      tables_to_clean.each do |table|
+        connection.disable_referential_integrity do
+          table_name = connection.quote_table_name(table)
+          keep_ids   = keep_data[table]
+
+          if keep_ids
+            connection.execute("DELETE FROM #{table_name} WHERE id NOT IN (#{keep_ids.join(',')});")
+          else
+            connection.execute("DELETE FROM #{table_name};")
+          end
+        end
+      end
+    end
+
+    def reset_tables_with_inserts
+      @@tables_with_inserts = []
+    end
+
+    def tables_with_inserts
+      @@tables_with_inserts
+    end
+  end
+end
+
+module CustomDatabaseCleaner
   module InsertRecorder
     def execute(sql, *)
-      DatabaseCleaner.record_inserted_table(self, sql)
+      CustomDatabaseCleaner.record_inserted_table(self, sql)
       super
     end
 
     def exec_query(sql, *)
-      DatabaseCleaner.record_inserted_table(self, sql)
+      CustomDatabaseCleaner.record_inserted_table(self, sql)
       super
     end
-  end
-
-  @@tables = []
-
-  def self.tables
-    @@tables
-  end
-
-  def self.record_inserted_table(connection, sql)
-    match = sql.match(/\AINSERT(?:\s+IGNORE)?\s+INTO\s+(?:\.*[`"]?([^.\s`"]+)[`"]?)*/i)
-    tables << match[1] if match && !tables.include?(match[1])
-  end
-
-  def self.clean
-    CoreDB.with_connection do |connection|
-      (
-        connection.tables.reject { |t| t == ActiveRecord::Migrator.schema_migrations_table_name } & tables
-      ).each do |table|
-        connection.disable_referential_integrity do
-          connection.execute "DELETE FROM #{connection.quote_table_name(table)};"
-        end
-      end
-    end
-    @@tables = []
   end
 end
 
 require 'active_record/connection_adapters/abstract_mysql_adapter'
-ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.send(:prepend, DatabaseCleaner::InsertRecorder)
+ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter.send(:prepend, CustomDatabaseCleaner::InsertRecorder)
 ```
 
 
