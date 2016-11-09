@@ -1,43 +1,31 @@
 module Octoshark
-  module ActiveRecordBase
-    extend ActiveSupport::Concern
-
-    included do
-      class << self
-        alias_method_chain :establish_connection, :octoshark
-      end
-    end
-
-    module ClassMethods
-      # When a connection is established in an ancestor process that must have
-      # subsequently forked, ActiveRecord establishes a new connection because
-      # it can't reuse the existing one. When that happens, we need to reconnect
-      # Octoshark connection managers.
-      def establish_connection_with_octoshark(*args)
-        establish_connection_without_octoshark(*args)
-        Octoshark::ConnectionPoolsManager.reset_connection_managers!
-      end
+  module ConnectionHandler
+    def establish_connection(*args)
+      Octoshark::ConnectionPoolsManager.reset_connection_managers!
+      super(*args)
     end
   end
 
   module ActiveRecordAbstractAdapter
-    extend ActiveSupport::Concern
-
     attr_accessor :connection_name, :database_name
 
-    included do
-      alias_method_chain :log, :octoshark
-    end
-
-    def log_with_octoshark(sql, name = "SQL", *other_args, &block)
+    def log(sql, name = "SQL", *other_args, &block)
       if connection_name || database_name
         name = "[Octoshark: #{[connection_name, database_name].compact.join(' ')}] #{name}"
       end
 
-      log_without_octoshark(sql, name, *other_args, &block)
+      super(sql, name, *other_args, &block)
     end
   end
 end
 
-ActiveRecord::Base.send(:include, Octoshark::ActiveRecordBase)
-ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:include, Octoshark::ActiveRecordAbstractAdapter)
+if defined?(ActiveRecord::ConnectionAdapters::ConnectionHandler)
+  # Rails 3.2, 4.0, 4.1, 4.2, 5.0
+  ActiveRecord::ConnectionAdapters::ConnectionHandler.send(:prepend, Octoshark::ConnectionHandler)
+else
+  # Rails 3.0 and 3.1 does not lazy load
+  require 'active_record/connection_adapters/abstract_adapter'
+  ActiveRecord::ConnectionAdapters::ConnectionHandler.send(:prepend, Octoshark::ConnectionHandler)
+end
+
+ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:prepend, Octoshark::ActiveRecordAbstractAdapter)

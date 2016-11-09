@@ -11,7 +11,7 @@ module Octoshark
     end
 
     def self.reset_connection_managers!
-      connection_managers.map(&:reset!)
+      connection_managers.each(&:reset!)
     end
 
     def self.disconnect!
