@@ -1,4 +1,4 @@
-![Octoshark logo](https://dl.dropboxusercontent.com/u/3230730/github/octoshark.png)
+![Octoshark logo](http://dalibornasevic.com/images/octoshark.png)
 
 ![Travis status](https://travis-ci.org/dalibor/octoshark.png)
 
