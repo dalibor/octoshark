@@ -42,7 +42,7 @@ describe Octoshark::ConnectionManager do
         connection.execute("SELECT 1")
       end
 
-      expect(result).to eq([{"1"=>1, 0=>1}])
+      expect(result.first['1']).to eq(1)
     end
   end
 end
