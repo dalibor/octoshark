@@ -1,5 +1,7 @@
 cache:
   - bundler
+services:
+  - mysql
 notifications:
   email:
     - dalibor.nasevic@gmail.com
