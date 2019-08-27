@@ -1,24 +1,34 @@
-rvm:
-  - 2.2.2
-  - 2.3.5
-  - 2.4.2
 cache:
   - bundler
+services:
+  - mysql
 notifications:
   email:
     - dalibor.nasevic@gmail.com
-gemfile:
-  - gemfiles/rails3.0.gemfile
-  - gemfiles/rails3.1.gemfile
-  - gemfiles/rails3.2.gemfile
-  - gemfiles/rails4.0.gemfile
-  - gemfiles/rails4.1.gemfile
-  - gemfiles/rails4.2.gemfile
-  - gemfiles/rails5.0.gemfile
-  - gemfiles/rails5.1.gemfile
-  - gemfiles/rails5.2.gemfile
 before_script:
   - cp spec/support/config.yml.travis spec/support/config.yml
   - bundle exec rake db:create
 script:
   - bundle exec rspec spec
+matrix:
+  include:
+  - gemfile: gemfiles/rails3.0.gemfile
+    rvm: 2.2.2
+  - gemfile: gemfiles/rails3.1.gemfile
+    rvm: 2.2.2
+  - gemfile: gemfiles/rails3.2.gemfile
+    rvm: 2.2.2
+  - gemfile: gemfiles/rails4.0.gemfile
+    rvm: 2.3.5
+  - gemfile: gemfiles/rails4.1.gemfile
+    rvm: 2.3.5
+  - gemfile: gemfiles/rails4.2.gemfile
+    rvm: 2.4.2
+  - gemfile: gemfiles/rails5.0.gemfile
+    rvm: 2.4.2
+  - gemfile: gemfiles/rails5.1.gemfile
+    rvm: 2.5.2
+  - gemfile: gemfiles/rails5.2.gemfile
+    rvm: 2.5.2
+  - gemfile: gemfiles/rails6.0.gemfile
+    rvm: 2.6.2

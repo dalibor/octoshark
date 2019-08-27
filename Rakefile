@@ -19,7 +19,7 @@ namespace :db do
   task :create => :establish_connection do
     @databases.each do |database|
       begin
-        ActiveRecord::Base.connection.create_database(database)
+        ActiveRecord::Base.connection.create_database(database, charset: 'utf8')
         puts "#{database} created."
       rescue ActiveRecord::StatementInvalid => e
         if e.message.match /database exists/

@@ -67,7 +67,7 @@ describe Octoshark::ConnectionPoolsManager do
     it "returns value from execution" do
       manager = Octoshark::ConnectionPoolsManager.new(configs)
       result = manager.with_connection(:db1) { |connection| connection.execute("SELECT 1") }
-      expect(result).to eq([{"1"=>1, 0=>1}])
+      expect(result.first['1']).to eq(1)
     end
 
     it "raises Octoshark::Error::NoConnection" do
