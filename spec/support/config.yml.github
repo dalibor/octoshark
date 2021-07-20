@@ -4,9 +4,9 @@ db1:
   reconnect: false
   database: octoshark_db1
   pool: 5
-  username: travis
-  password:
-  host: localhost
+  username: root
+  password: pass
+  host: 127.0.0.1
   port: 3306
 
 db2:
@@ -15,7 +15,7 @@ db2:
   reconnect: false
   database: octoshark_db2
   pool: 5
-  username: travis
-  password:
-  host: localhost
+  username: root
+  password: pass
+  host: 127.0.0.1
   port: 3306
