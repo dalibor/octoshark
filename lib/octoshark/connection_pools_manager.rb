@@ -73,7 +73,7 @@ module Octoshark
     def create_connection_pool(name, config)
       spec =
         if defined?(ActiveRecord::ConnectionAdapters::PoolConfig)
-          env_name = defined?(Rails) ? Rails.env : nil # TODO: test this
+          env_name = defined?(Rails) ? Rails.env : nil
           db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, name, config)
           ActiveRecord::ConnectionAdapters::PoolConfig.new(owner_name = ActiveRecord::Base, db_config)
         else
