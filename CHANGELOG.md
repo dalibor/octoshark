@@ -1,5 +1,9 @@
 # Change log
 
+## 0.3.0 2021-07-20
+
+- Add support for Rails 6.1
+
 ## 0.2.2 2016-11-09
 
 - Fix `alias_method_chain` deprecation in Rails 5

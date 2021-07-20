@@ -61,14 +61,6 @@ module Octoshark
     end
 
     private
-    def spec_class
-      if defined?(ActiveRecord::ConnectionAdapters::ConnectionSpecification)
-        spec_class = ActiveRecord::ConnectionAdapters::ConnectionSpecification
-      else
-        # Rails 3.0, 3.1 and 3.2
-        spec_class = ActiveRecord::Base::ConnectionSpecification
-      end
-    end
 
     def setup_connection_pools
       @connection_pools = HashWithIndifferentAccess.new
@@ -79,13 +71,24 @@ module Octoshark
     end
 
     def create_connection_pool(name, config)
-      adapter_method = "#{config[:adapter]}_connection"
       spec =
-        if spec_class.instance_method(:initialize).arity == 3
-          # Rails 5 ConnectionSpecification accepts spec name
-          spec_class.new(name, config, adapter_method)
+        if defined?(ActiveRecord::ConnectionAdapters::PoolConfig)
+          env_name = defined?(Rails) ? Rails.env : nil
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, name, config)
+          ActiveRecord::ConnectionAdapters::PoolConfig.new(owner_name = ActiveRecord::Base, db_config)
         else
-          spec_class.new(config, adapter_method)
+          adapter_method = "#{config[:adapter]}_connection"
+          if defined?(ActiveRecord::ConnectionAdapters::ConnectionSpecification)
+            spec_class = ActiveRecord::ConnectionAdapters::ConnectionSpecification
+
+            if spec_class.instance_method(:initialize).arity == 3
+              spec_class.new(name, config, adapter_method)
+            else
+              spec_class.new(config, adapter_method)
+            end
+          else
+            ActiveRecord::Base::ConnectionSpecification.new(config, adapter_method)
+          end
         end
 
       ActiveRecord::ConnectionAdapters::ConnectionPool.new(spec)
