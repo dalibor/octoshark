@@ -71,27 +71,45 @@ module Octoshark
     end
 
     def create_connection_pool(name, config)
-      spec =
-        if defined?(ActiveRecord::ConnectionAdapters::PoolConfig)
-          env_name = defined?(Rails) ? Rails.env : nil
-          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, name, config)
-          ActiveRecord::ConnectionAdapters::PoolConfig.new(owner_name = ActiveRecord::Base, db_config)
-        else
-          adapter_method = "#{config[:adapter]}_connection"
-          if defined?(ActiveRecord::ConnectionAdapters::ConnectionSpecification)
-            spec_class = ActiveRecord::ConnectionAdapters::ConnectionSpecification
-
-            if spec_class.instance_method(:initialize).arity == 3
-              spec_class.new(name, config, adapter_method)
-            else
-              spec_class.new(config, adapter_method)
-            end
-          else
-            ActiveRecord::Base::ConnectionSpecification.new(config, adapter_method)
-          end
-        end
+      spec = build_connection_pool_spec(name, config)
 
       ActiveRecord::ConnectionAdapters::ConnectionPool.new(spec)
+    end
+
+    private
+
+    def build_connection_pool_spec(name, config)
+      if active_record_6_1?
+        env_name = defined?(Rails) ? Rails.env : nil
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, name, config)
+
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(owner_name = ActiveRecord::Base, db_config)
+      else
+        adapter_method = "#{config[:adapter]}_connection"
+
+        if active_record_5_or_6?
+          spec_class = ActiveRecord::ConnectionAdapters::ConnectionSpecification
+
+          # ActiveRecord 5
+          if spec_class.instance_method(:initialize).arity == 3
+            spec_class.new(name, config, adapter_method)
+          # ActiveRecord 6
+          else
+            spec_class.new(config, adapter_method)
+          end
+        else
+          # ActiveRecord < 5
+          ActiveRecord::Base::ConnectionSpecification.new(config, adapter_method)
+        end
+      end
+    end
+
+    def active_record_6_1?
+      defined?(ActiveRecord::ConnectionAdapters::PoolConfig)
+    end
+
+    def active_record_5_or_6?
+      defined?(ActiveRecord::ConnectionAdapters::ConnectionSpecification)
     end
   end
 end
