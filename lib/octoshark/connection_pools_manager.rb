@@ -80,6 +80,7 @@ module Octoshark
 
     def build_connection_pool_spec(name, config)
       if active_record_6_1?
+        # ActiveRecord 6.1
         env_name = defined?(Rails) ? Rails.env : nil
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, name, config)
 
@@ -87,18 +88,18 @@ module Octoshark
       else
         adapter_method = "#{config[:adapter]}_connection"
 
-        if active_record_5_or_6?
+        if active_record_4_or_5_or_6?
           spec_class = ActiveRecord::ConnectionAdapters::ConnectionSpecification
 
-          # ActiveRecord 5
           if spec_class.instance_method(:initialize).arity == 3
+            # ActiveRecord 5.x and 6.0
             spec_class.new(name, config, adapter_method)
-          # ActiveRecord 6
           else
+            # ActiveRecord 4.x
             spec_class.new(config, adapter_method)
           end
         else
-          # ActiveRecord < 5
+          # ActiveRecord 3.x
           ActiveRecord::Base::ConnectionSpecification.new(config, adapter_method)
         end
       end
@@ -108,7 +109,7 @@ module Octoshark
       defined?(ActiveRecord::ConnectionAdapters::PoolConfig)
     end
 
-    def active_record_5_or_6?
+    def active_record_4_or_5_or_6?
       defined?(ActiveRecord::ConnectionAdapters::ConnectionSpecification)
     end
   end
