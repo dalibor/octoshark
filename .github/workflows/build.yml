@@ -29,11 +29,11 @@ jobs:
       matrix:
         include:
           - gemfile: rails3.0
-            ruby: 2.2
+            ruby: 2.4
           - gemfile: rails3.1
-            ruby: 2.2
+            ruby: 2.4
           - gemfile: rails3.2
-            ruby: 2.2
+            ruby: 2.4
 
           - gemfile: rails4.0
             ruby: 2.4
