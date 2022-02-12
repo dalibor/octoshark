@@ -91,11 +91,15 @@ jobs:
             ruby: 2.6
           - gemfile: rails5.2
             ruby: 2.6
+          - gemfile: rails5.2
+            ruby: 3.0
 
           - gemfile: rails6.0
             ruby: 2.7
           - gemfile: rails6.1
             ruby: 2.7
+          - gemfile: rails6.1
+            ruby: 3.0
 
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
