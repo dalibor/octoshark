@@ -1,5 +1,10 @@
 # Change log
 
+## 0.4.0 2022-02-12
+
+- Add support for Rails 7.0
+- Fix `establish_connection` for Ruby 3
+
 ## 0.3.0 2021-07-20
 
 - Add support for Rails 6.1
