@@ -101,6 +101,11 @@ jobs:
           - gemfile: rails6.1
             ruby: 3.0
 
+          - gemfile: rails7.0
+            ruby: 2.7
+          - gemfile: rails7.0
+            ruby: 3.0
+
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
       BUNDLE_PATH_RELATIVE_TO_CWD: true
