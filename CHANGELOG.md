@@ -1,5 +1,10 @@
 # Change log
 
+## 0.5.0 2023-10-27
+
+- Add support for Rails 7.1
+- Drop legacy test job because ubuntu-18.04 build node is not available anymore
+
 ## 0.4.0 2022-02-12
 
 - Add support for Rails 7.0
