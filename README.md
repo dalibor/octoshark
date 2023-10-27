@@ -1,6 +1,6 @@
 ![Octoshark logo](http://dalibornasevic.com/images/octoshark.png)
 
-![Travis status](https://travis-ci.org/dalibor/octoshark.png)
+![Build status](https://github.com/dalibor/octoshark/actions/workflows/build.yml/badge.svg)
 
 Octoshark is a simple ActiveRecord connection manager. It provides connection switching mechanisms that can be used in various scenarios like master-slave, sharding or multi-tenant architecture.
 
