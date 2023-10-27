@@ -81,6 +81,7 @@ module Octoshark
     def build_connection_pool_spec(name, config)
       if active_record_6_1_or_7?
         env_name = defined?(Rails) ? Rails.env : nil
+        require "active_record/database_configurations"
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, name, config)
 
         pool_config_class = ActiveRecord::ConnectionAdapters::PoolConfig
