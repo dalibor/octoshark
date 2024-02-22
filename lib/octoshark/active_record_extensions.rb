@@ -26,12 +26,12 @@ module Octoshark
   module ActiveRecordAbstractAdapter
     attr_accessor :connection_name, :database_name
 
-    def log(sql, name = "SQL", *other_args, &block)
+    def log(sql, name = "SQL", *other_args, **kwargs, &block)
       if connection_name || database_name
         name = "[Octoshark: #{[connection_name, database_name].compact.join(' ')}] #{name}"
       end
 
-      super(sql, name, *other_args, &block)
+      super(sql, name, *other_args, **kwargs, &block)
     end
   end
 end
