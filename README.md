@@ -54,7 +54,6 @@ config = {
   password: 'pass',
   pool:     1,
   encoding: 'utf8',
-  reconnect: false
 }
 ```
 
