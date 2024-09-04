@@ -34,6 +34,18 @@ module Octoshark
       super(sql, name, *other_args, **kwargs, &block)
     end
   end
+
+  module ConnectionPool
+    # Handle Rails 8.0 ConnectionPool#connection deprecation
+    def connection
+      if respond_to?(:lease_connection)
+        # Rails 7.2+
+        lease_connection
+      else
+        super
+      end
+    end
+  end
 end
 
 # Rails 3.0 and 3.1 does not lazy load
@@ -43,3 +55,4 @@ end
 
 ActiveRecord::ConnectionAdapters::ConnectionHandler.send(:prepend, Octoshark::ConnectionHandler)
 ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:prepend, Octoshark::ActiveRecordAbstractAdapter)
+ActiveRecord::ConnectionAdapters::ConnectionPool.send(:prepend, Octoshark::ConnectionPool)
