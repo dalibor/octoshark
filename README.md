@@ -109,21 +109,23 @@ To tell an ActiveRecord model to use the Octoshark connection we can override th
 
 ```ruby
 class Post < ActiveRecord::Base
-  def self.connection
-    CONN_MANAGER.current_connection
-  end
-end
-```
-
-Alternatively, we can extract it as a module and include in multiple models.
-
-```ruby
-module ShardingModel
-  extend ActiveSupport::Concern
-
-  module ClassMethods
+  class << self
     def connection
       CONN_MANAGER.current_connection
+    end
+
+    # For Rails 7.2+ we need to override the following methods too:
+
+    def lease_connection
+      connection
+    end
+
+    def with_connection
+      yield connection
+    end
+
+    def schema_cache
+      connection.schema_cache
     end
   end
 end
