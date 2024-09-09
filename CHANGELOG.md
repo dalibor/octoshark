@@ -1,5 +1,9 @@
 # Change log
 
+## 0.6.0 2024-09-04
+
+- Add support for Rails 7.2
+
 ## 0.5.1 2024-04-22
 
 - Add kwargs argument to the ActiveRecordAbstractAdapter

@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mysql:
-        image: mysql:5.7
+        image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: pass
         ports:
@@ -28,31 +28,35 @@ jobs:
     strategy:
       matrix:
         include:
-          - gemfile: rails5.0
-            ruby: 2.6
           - gemfile: rails5.1
-            ruby: 2.6
+            ruby: 3.1
+          - gemfile: rails5.1
+            ruby: 3.2
+
           - gemfile: rails5.2
-            ruby: 2.6
+            ruby: 3.1
           - gemfile: rails5.2
-            ruby: 3.0
+            ruby: 3.2
 
           - gemfile: rails6.0
-            ruby: 2.7
+            ruby: 3.1
+          - gemfile: rails6.0
+            ruby: 3.2
+
           - gemfile: rails6.1
-            ruby: 2.7
+            ruby: 3.2
           - gemfile: rails6.1
-            ruby: 3.0
+            ruby: 3.3
 
           - gemfile: rails7.0
-            ruby: 3.0
+            ruby: 3.2
           - gemfile: rails7.0
-            ruby: 3.1
+            ruby: 3.3
 
-          - gemfile: rails7.1
-            ruby: 3.1
           - gemfile: rails7.1
             ruby: 3.2
+          - gemfile: rails7.1
+            ruby: 3.3
 
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
