@@ -1,4 +1,8 @@
-# Change log
+# Changelog
+
+## Unreleased
+
+- Add Rails 8.0 and 8.1 to build matrix
 
 ## 0.6.0 2024-09-04
 
