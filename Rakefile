@@ -1,6 +1,7 @@
 require 'bundler/gem_tasks'
 require 'rspec/core/rake_task'
 require 'yaml'
+require 'logger'
 require 'mysql2'
 require 'octoshark'
 
